@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catatan</title>
+<style>
+:root{
+  --bg:#0b1220; --card:#131c31; --text:#e6edf7; --muted:#8ea0bf;
+  --accent:#3b9dff; --accentText:#03101f; --border:#23324f;
+  --radius:16px; --fs:15px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; font-family:"Segoe UI",system-ui,-apple-system,sans-serif;
+  background:var(--bg); color:var(--text); font-size:var(--fs);
+  min-height:100vh; background-size:cover; background-attachment:fixed;
+  transition:background .3s,color .3s;
+}
+h1,h2,h3{margin:0 0 10px}
+h1{font-size:1.25rem} h2{font-size:1.05rem}
+a{color:var(--accent)}
+.view{display:none} .view.active{display:block}
+.container{max-width:1240px;margin:0 auto;padding:16px}
+.row{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.row.between{justify-content:space-between}
+.gap{gap:10px}
+.muted{color:var(--muted)}
+.small{font-size:.85em}
+.card{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius); padding:16px; margin-bottom:16px;
+  box-shadow:0 6px 24px rgba(0,0,0,.15);
+}
+.btn{
+  cursor:pointer; border:1px solid var(--border); background:rgba(127,127,127,.12);
+  color:var(--text); padding:9px 14px; border-radius:10px; font-size:.92em;
+  font-family:inherit; transition:.15s; white-space:nowrap;
+}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.12)}
+.btn.primary{background:var(--accent);color:var(--accentText);border-color:transparent;font-weight:600}
+.btn.wa{background:#25D366;color:#04240f;border-color:transparent;font-weight:600}
+.btn.danger{background:#e0455a;color:#fff;border-color:transparent}
+.btn.ghost{background:transparent}
+.btn.tiny{padding:4px 8px;font-size:.85em;border-radius:8px}
+.inp{
+  width:100%; padding:10px 12px; border-radius:10px;
+  border:1px solid var(--border); background:rgba(127,127,127,.10);
+  color:var(--text); font-family:inherit; font-size:.95em; outline:none;
+}
+.inp:focus{border-color:var(--accent)}
+label{display:block;margin-bottom:12px;font-size:.9em;color:var(--muted)}
+label .inp{margin-top:5px;color:var(--text)}
+textarea.inp{resize:vertical}
+.topbar{
+  position:sticky; top:0; z-index:50; display:flex; justify-content:space-between;
+  align-items:center; gap:12px; flex-wrap:wrap; padding:12px 16px;
+  background:color-mix(in srgb,var(--card) 88%,transparent);
+  backdrop-filter:blur(10px); border-bottom:1px solid var(--border);
+}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{
+  font-size:1.5rem;width:46px;height:46px;display:grid;place-items:center;
+  background:var(--accent);color:var(--accentText);border-radius:14px;
+}
+.badge{
+  display:inline-block;padding:5px 11px;border-radius:999px;
+  background:rgba(127,127,127,.16);font-size:.85em;
+}
+.badge.small{font-size:.72em;padding:3px 8px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.stat{padding:14px;text-align:center;margin:0}
+.stat-num{font-size:1.7rem;font-weight:700;color:var(--accent)}
+.stat-label{color:var(--muted);font-size:.85em;margin-top:2px}
+.clock{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:1.05rem;font-weight:600}
+.clock span{background:rgba(127,127,127,.12);padding:8px 14px;border-radius:12px}
+.group{margin-bottom:22px}
+.group-head{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  flex-wrap:wrap;margin-bottom:8px;
+}
+.badge.grp{background:var(--accent);color:var(--accentText);font-weight:600}
+.grp-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px}
+.tbl{width:100%;border-collapse:collapse;font-size:.9em;min-width:820px}
+.tbl th{
+  background:rgba(127,127,127,.16);text-align:left;padding:9px 10px;
+  font-weight:600;white-space:nowrap;position:sticky;top:0;
+}
+.tbl td{padding:8px 10px;border-top:1px solid var(--border);vertical-align:top}
+.tbl tbody tr:hover{background:rgba(127,127,127,.07)}
+.desc{max-width:260px;word-break:break-word;white-space:pre-wrap}
+.qty{
+  display:inline-block;padding:3px 10px;border-radius:8px;font-weight:700;
+  background:rgba(127,127,127,.18);
+}
+.thumb{
+  width:52px;height:52px;object-fit:cover;border-radius:8px;cursor:pointer;
+  border:1px solid var(--border);transition:.15s;
+}
+.thumb:hover{transform:scale(1.12)}
+.acts{white-space:nowrap}
+.empty{padding:34px;text-align:center;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.grid2 .full{grid-column:1/-1}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+.auth-wrap{min-height:100vh;display:grid;place-items:center;padding:20px}
+.auth-card{width:100%;max-width:420px}
+.auth-card .btn{width:100%;margin-top:8px}
+.tabs{
+  display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px 0;
+  max-width:1240px;margin:0 auto;
+}
+.tab{
+  cursor:pointer;padding:10px 16px;border-radius:12px 12px 0 0;
+  border:1px solid transparent;background:transparent;color:var(--muted);
+  font-family:inherit;font-size:.92em;
+}
+.tab.active{background:var(--card);border-color:var(--border);border-bottom-color:transparent;color:var(--text);font-weight:600}
+.tabpane{display:none} .tabpane.active{display:block}
+.theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:8px}
+.swatch{
+  display:flex;flex-direction:column;gap:7px;align-items:flex-start;
+  padding:10px;border-radius:12px;border:2px solid var(--border);
+  background:rgba(127,127,127,.08);color:var(--text);cursor:pointer;
+  font-family:inherit;font-size:.85em;
+}
+.swatch.active{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 30%,transparent)}
+.sw-dots{display:flex;gap:4px}
+.sw-dots i{width:18px;height:18px;border-radius:50%;display:block;border:1px solid rgba(127,127,127,.4)}
+.color-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+input[type=color]{width:100%;height:42px;padding:3px;border-radius:10px;border:1px solid var(--border);background:transparent;cursor:pointer}
+.fab{
+  position:fixed;right:18px;bottom:18px;z-index:80;border:none;cursor:pointer;
+  background:#25D366;color:#04240f;font-size:1.5rem;width:58px;height:58px;
+  border-radius:50%;box-shadow:0 8px 24px rgba(0,0,0,.35);
+}
+.fab:hover{transform:scale(1.08)}
+#toast{
+  position:fixed;left:50%;bottom:26px;transform:translate(-50%,80px);
+  background:#111a2b;color:#fff;padding:12px 20px;border-radius:12px;
+  font-size:.9em;z-index:200;opacity:0;transition:.3s;pointer-events:none;
+  border:1px solid rgba(255,255,255,.15);max-width:90vw;text-align:center;
+}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ===== PENAMPIL FOTO: ZOOM, PAN, DOWNLOAD ===== */
+.modal{ display:none; position:fixed; inset:0; z-index:150; background:rgba(0,0,0,.92); padding:14px; }
+.modal.show{ display:grid; place-items:center; }
+.modal-foto-wrap{
+  width:100%; max-width:1100px; height:100%;
+  display:flex; flex-direction:column; gap:10px;
+}
+.modal-foto-toolbar{
+  display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
+  background:rgba(255,255,255,.08); padding:10px; border-radius:12px;
+  border:1px solid rgba(255,255,255,.15);
+}
+.modal-foto-toolbar .btn{
+  color:#fff; border-color:rgba(255,255,255,.25); background:rgba(255,255,255,.10);
+}
+.modal-foto-toolbar .btn.wa{ background:#25D366; color:#04240f; border-color:transparent; }
+.modal-foto-toolbar .btn.danger{ background:#e0455a; color:#fff; border-color:transparent; }
+#zoomLevel{
+  color:#fff; background:rgba(255,255,255,.15); min-width:62px;
+  text-align:center; align-self:center;
+}
+.modal-foto-body{
+  flex:1; overflow:hidden; display:grid; place-items:center;
+  border-radius:14px; background:rgba(255,255,255,.04);
+  cursor:grab; touch-action:none;
+}
+.modal-foto-body.dragging{ cursor:grabbing; }
+.modal-foto-body img{
+  max-width:100%; max-height:100%;
+  border-radius:10px; user-select:none;
+  -webkit-user-drag:none; -webkit-user-select:none;
+  transform-origin:center center;
+  transition:transform .1s ease-out;
+  will-change:transform;
+}
+@media(max-width:560px){
+  .modal-foto-toolbar .btn{ padding:7px 10px; font-size:.82em; }
+}
+</style>
+</head>
+<body>
+
+<!-- ================= DASHBOARD UMUM ================= -->
+<div id="viewPublic" class="view active">
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">📒</span>
+      <div><h1 id="pubAppName">Catatan</h1><div class="muted small">Dashboard Umum • Data Terbuka</div></div>
+    </div>
+    <div class="row gap">
+      <button class="btn ghost" onclick="show('viewLogin')">🔐 Login Admin</button>
+      <button class="btn primary" onclick="show('viewRegister')">📝 Daftar</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <div id="pubClock" class="clock"></div>
+    </section>
+
+    <section class="stats">
+      <div class="stat card"><div class="stat-num" id="pubTotalCatatan">0</div><div class="stat-label">Total Catatan</div></div>
+      <div class="stat card"><div class="stat-num" id="pubTotalQty">0</div><div class="stat-label">Total Qty (angka)</div></div>
+      <div class="stat card"><div class="stat-num" id="pubTotalHari">0</div><div class="stat-label">Jumlah Hari</div></div>
+      <div class="stat card"><div class="stat-num" id="pubTotalBarang">0</div><div class="stat-label">Jenis Barang</div></div>
+    </section>
+
+    <section class="card">
+      <div class="row between">
+        <h2>📊 Tabel Data Catatan</h2>
+        <div class="row gap">
+          <input id="pubSearch" class="inp" style="width:230px" placeholder="🔍 Cari barang / deskripsi...">
+          <button class="btn" onclick="exportPublic()">📄 Export Semua PDF</button>
+          <button class="btn wa" onclick="waPublic()">💬 Kirim ke WA Admin</button>
+        </div>
+      </div>
+      <p class="muted small">Setiap tabel punya tombol <b>📄 Export PDF</b> sendiri, dan nomor otomatis mulai dari <b>1</b> di setiap tanggal.</p>
+      <div id="pubTables"></div>
+    </section>
+  </main>
+</div>
+
+<!-- ================= LOGIN ================= -->
+<div id="viewLogin" class="view">
+  <div class="auth-wrap">
+    <form id="formLogin" class="card auth-card">
+      <h2>🔐 Login Admin</h2>
+      <label>Nama<input id="logNama" class="inp" placeholder="Nama akun" required></label>
+      <label>Kata Sandi<input id="logPass" type="password" class="inp" placeholder="••••••" required></label>
+      <button class="btn primary" type="submit">Masuk ke Dashboard Admin</button>
+      <button class="btn ghost" type="button" onclick="show('viewRegister')">Belum punya akun? Daftar</button>
+      <button class="btn ghost" type="button" onclick="show('viewPublic')">← Dashboard Umum</button>
+    </form>
+  </div>
+</div>
+
+<!-- ================= DAFTAR ================= -->
+<div id="viewRegister" class="view">
+  <div class="auth-wrap">
+    <form id="formRegister" class="card auth-card">
+      <h2>📝 Daftar Akun Admin</h2>
+      <p class="muted small" id="regHint">Akun pertama otomatis menjadi <b>Super Admin</b> tanpa kode khusus.</p>
+      <label>Nama<input id="regNama" class="inp" placeholder="Min. 3 karakter" required></label>
+      <label>Kata Sandi<input id="regPass" type="password" class="inp" placeholder="Min. 4 karakter" required></label>
+      <label>Nomor WhatsApp<input id="regWa" class="inp" placeholder="08xxxxxxxxxx" required></label>
+      <label>Kode Khusus / Kode Rahasia<input id="regKode" class="inp" placeholder="Kode dari Super Admin"></label>
+      <button class="btn primary" type="submit">Daftar Sekarang</button>
+      <button class="btn ghost" type="button" onclick="show('viewLogin')">Sudah punya akun? Login</button>
+      <button class="btn ghost" type="button" onclick="show('viewPublic')">← Dashboard Umum</button>
+    </form>
+  </div>
+</div>
+
+<!-- ================= DASHBOARD ADMIN ================= -->
+<div id="viewAdmin" class="view">
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">🛠️</span>
+      <div><h1 id="admAppName">Dashboard Admin</h1><div class="muted small">Panel Pengelolaan Catatan</div></div>
+    </div>
+    <div class="row gap">
+      <span class="badge">👤 <b id="admUser">-</b></span>
+      <button class="btn ghost" onclick="show('viewPublic')">🌐 Dashboard Umum</button>
+      <button class="btn danger" onclick="logout()">🚪 Logout</button>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="tabCatatan">📝 Input Catatan</button>
+    <button class="tab" data-tab="tabData">📊 Tabel Data</button>
+    <button class="tab" data-tab="tabUser">👥 Pengguna</button>
+    <button class="tab" data-tab="tabSet">⚙️ Pengaturan</button>
+  </div>
+
+  <main class="container">
+
+    <!-- TAB CATATAN -->
+    <section id="tabCatatan" class="tabpane active">
+      <div class="card">
+        <h2>📝 Input Catatan</h2>
+        <form id="formRecord" class="grid2">
+          <label>Nama Barang / Kegiatan
+            <input id="inNama" class="inp" placeholder="cth: Kertas A4" required>
+          </label>
+          <label>Total / Qty (angka atau huruf)
+            <input id="inQty" class="inp" placeholder="cth: 12 / 3 dus / sekarung">
+          </label>
+          <label class="full">Deskripsi / Catatan
+            <textarea id="inDesc" class="inp" rows="3" placeholder="Keterangan tambahan..."></textarea>
+          </label>
+          <label class="full">Upload Foto
+            <input id="inFoto" type="file" accept="image/*" class="inp">
+          </label>
+          <div class="full" id="fotoPreview"></div>
+          <div class="full row gap">
+            <button class="btn primary" type="submit">💾 Simpan</button>
+            <button class="btn ghost" type="button" onclick="resetForm()">↺ Reset Form</button>
+            <span id="editHint" class="muted small"></span>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="row between">
+          <h2>🗂️ Catatan Terbaru</h2>
+          <div class="row gap">
+            <button class="btn" onclick="exportAll()">📄 Export Semua PDF</button>
+            <button class="btn wa" onclick="waPublic()">💬 Kirim ke WA Admin</button>
+          </div>
+        </div>
+        <div id="admCatatanTables"></div>
+      </div>
+    </section>
+
+    <!-- TAB DATA -->
+    <section id="tabData" class="tabpane">
+      <div class="card">
+        <div class="row between">
+          <h2>📊 Tabel Data Lengkap</h2>
+          <div class="row gap">
+            <input id="dataSearch" class="inp" style="width:210px" placeholder="🔍 Cari...">
+            <select id="dataGroup" class="inp" style="width:auto">
+              <option value="hari">Pisah per Tanggal</option>
+              <option value="jam">Pisah per Jam</option>
+              <option value="none">Tanpa Pemisahan</option>
+            </select>
+            <button class="btn" onclick="exportData()">📄 Export Semua PDF</button>
+            <button class="btn wa" onclick="waData()">💬 Kirim ke WA Admin</button>
+          </div>
+        </div>
+        <p class="muted small">Setiap tabel punya tombol <b>📄 Export PDF</b> sendiri, dan nomor otomatis mulai dari <b>1</b> di setiap tabel.</p>
+        <div id="admDataTables"></div>
+      </div>
+    </section>
+
+    <!-- TAB PENGGUNA -->
+    <section id="tabUser" class="tabpane">
+      <div class="card">
+        <h2>👥 Daftar Pengguna</h2>
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead><tr><th>No</th><th>Nama</th><th>No. WhatsApp</th><th>Terdaftar</th><th>Aksi</th></tr></thead>
+            <tbody id="userTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB PENGATURAN -->
+    <section id="tabSet" class="tabpane">
+      <div class="card">
+        <h2>⚙️ Pengaturan Umum</h2>
+        <div class="grid2">
+          <label>Nama Aplikasi<input id="setAppName" class="inp"></label>
+          <label>Nomor WhatsApp Admin<input id="setWa" class="inp" placeholder="08xxxxxxxxxx"></label>
+          <label id="kodeWrap">Kode Khusus / Kode Rahasia<input id="setKode" class="inp"></label>
+          <label>URL Background (opsional)<input id="setBgImage" class="inp" placeholder="https://.../gambar.jpg"></label>
+          <label>Ukuran Font: <b id="lblFont">15</b>px
+            <input id="setFont" type="range" min="12" max="20" value="15" class="inp">
+          </label>
+          <label>Sudut Melengkung: <b id="lblRadius">16</b>px
+            <input id="setRadius" type="range" min="0" max="30" value="16" class="inp">
+          </label>
+        </div>
+
+        <label style="display:flex;align-items:center;gap:10px;margin-top:6px">
+          <input id="setAutoTheme" type="checkbox" style="width:auto">
+          🌗 Tema Otomatis (siang/malam mengikuti jam perangkat)
+        </label>
+        <div class="grid2" id="autoThemeBox">
+          <label>Tema Siang (06:00–18:00)<select id="setDayTheme" class="inp"></select></label>
+          <label>Tema Malam (18:00–06:00)<select id="setNightTheme" class="inp"></select></label>
+        </div>
+        <label style="display:flex;align-items:center;gap:10px">
+          <input id="setAutoWa" type="checkbox" style="width:auto">
+          💬 Kirim otomatis ke WhatsApp admin setiap kali menyimpan catatan
+        </label>
+      </div>
+
+      <div class="card">
+        <div class="row between">
+          <h2>🎨 Tema & Warna</h2>
+          <button class="btn ghost" type="button" onclick="randomTheme()">🎲 Acak Tema</button>
+        </div>
+        <p class="muted small">Klik salah satu tema — langsung berubah otomatis tanpa reload.</p>
+        <div id="themeGrid" class="theme-grid"></div>
+      </div>
+
+      <div class="card">
+        <h2>🎨 Warna Custom</h2>
+        <div class="color-row">
+          <label>Background<input type="color" id="custBg"></label>
+          <label>Kartu / Panel<input type="color" id="custCard"></label>
+          <label>Teks<input type="color" id="custText"></label>
+          <label>Aksen / Tombol<input type="color" id="custAccent"></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row between">
+          <h2>💾 Simpan & Data</h2>
+          <div class="row gap">
+            <button class="btn ghost" onclick="seedDemo()">🧪 Tambah 5 Data Contoh</button>
+            <button class="btn danger" onclick="wipeRecords()">🗑️ Hapus Semua Catatan</button>
+            <button class="btn primary" onclick="saveSettings()">💾 Simpan Pengaturan</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<button class="fab" title="Kirim ringkasan ke WhatsApp Admin" onclick="waPublic()">💬</button>
+<div id="toast"></div>
+
+<!-- ===== MODAL FOTO DENGAN ZOOM, PAN & DOWNLOAD ===== -->
+<div id="modalFoto" class="modal">
+  <div class="modal-foto-wrap">
+    <div class="modal-foto-toolbar">
+      <button type="button" class="btn tiny" onclick="zoomFoto(-0.25)" title="Perkecil">➖ Perkecil</button>
+      <span id="zoomLevel" class="badge small">100%</span>
+      <button type="button" class="btn tiny" onclick="zoomFoto(0.25)" title="Perbesar">➕ Perbesar</button>
+      <button type="button" class="btn tiny" onclick="resetZoom()" title="Reset ukuran">↺ Reset</button>
+      <button type="button" class="btn tiny wa" onclick="downloadFoto()" title="Unduh gambar">⬇️ Download</button>
+      <button type="button" class="btn tiny danger" onclick="closeModalFoto()" title="Tutup">✖ Tutup</button>
+    </div>
+    <div class="modal-foto-body" id="modalFotoBody">
+      <img id="modalImg" src="" alt="Foto catatan">
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= UTIL ================= */
+const $  = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const HARI  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+const KEY = { users:'catatan_users_v1', records:'catatan_records_v1', settings:'catatan_settings_v1', session:'catatan_session' };
+
+const pad = n => String(n).padStart(2,'0');
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = v => { const n = parseFloat(String(v).replace(',','.')); return isNaN(n)?0:n; };
+
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._tm); t._tm = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+function loadLS(k, def){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; }catch(e){ return def; } }
+function saveLS(k, v){
+  try{ localStorage.setItem(k, JSON.stringify(v)); return true; }
+  catch(e){ toast('⚠️ Penyimpanan penuh — kurangi ukuran foto.'); return false; }
+}
+
+function fmtDateKey(ts){ const d = new Date(ts); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function dateParts(ts){
+  const d = new Date(ts);
+  return {
+    hari: HARI[d.getDay()],
+    tanggal: d.getDate(),
+    bulan: BULAN[d.getMonth()],
+    tahun: d.getFullYear(),
+    jam: pad(d.getHours())+':'+pad(d.getMinutes()),
+    full: HARI[d.getDay()]+', '+d.getDate()+' '+BULAN[d.getMonth()]+' '+d.getFullYear()
+  };
+}
+function normalizePhone(n){
+  let d = String(n||'').replace(/\D/g,'');
+  if(!d) return '';
+  if(d.startsWith('0')) d = '62' + d.slice(1);
+  if(!d.startsWith('62')) d = '62' + d;
+  return d;
+}
+function hexA(hex, a){
+  const h = String(hex).replace('#','');
+  if(h.length !== 6) return `rgba(127,127,127,${a})`;
+  const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+function luminance(hex){
+  const h = String(hex).replace('#','');
+  if(h.length !== 6) return 0;
+  const r = parseInt(h.slice(0,2),16)/255, g = parseInt(h.slice(2,4),16)/255, b = parseInt(h.slice(4,6),16)/255;
+  return 0.2126*r + 0.7152*g + 0.0722*b;
+}
+
+/* ================= TEMA ================= */
+const THEMES = {
+  ocean:   {label:'🌊 Ocean',    bg:'#0b1220', card:'#131c31', text:'#e6edf7', muted:'#8ea0bf', accent:'#3b9dff', accentText:'#03101f', border:'#23324f'},
+  senja:   {label:'🌇 Senja',    bg:'#1a1024', card:'#26163a', text:'#f4e9ff', muted:'#b39ccc', accent:'#ff7a59', accentText:'#2a0f08', border:'#3c2456'},
+  hutan:   {label:'🌲 Hutan',    bg:'#08170f', card:'#0f2418', text:'#e3f7e9', muted:'#8bb79c', accent:'#3ddc84', accentText:'#03210f', border:'#1c3b28'},
+  kopi:    {label:'☕ Kopi',      bg:'#17110c', card:'#241a12', text:'#f6ebdf', muted:'#bda286', accent:'#d9a066', accentText:'#2a1a0a', border:'#3b2a1c'},
+  neon:    {label:'⚡ Neon',      bg:'#0a0616', card:'#150c2b', text:'#f2e9ff', muted:'#a08cd0', accent:'#c93cff', accentText:'#12001f', border:'#2c1a52'},
+  marun:   {label:'🍷 Marun',     bg:'#1c0b0f', card:'#2a1116', text:'#fbe9ec', muted:'#c79aa4', accent:'#e04b62', accentText:'#2a0509', border:'#45202a'},
+  mono:    {label:'⚫ Monokrom',  bg:'#101010', card:'#1b1b1b', text:'#f0f0f0', muted:'#9a9a9a', accent:'#f0f0f0', accentText:'#101010', border:'#2e2e2e'},
+  salju:   {label:'❄️ Salju',     bg:'#f4f7fb', card:'#ffffff', text:'#16233a', muted:'#6b7c99', accent:'#2563eb', accentText:'#ffffff', border:'#dbe4f0'},
+  pastel:  {label:'🌸 Pastel',    bg:'#fff5f8', card:'#ffffff', text:'#4a2c3a', muted:'#a9829a', accent:'#ec4899', accentText:'#ffffff', border:'#f6d6e4'},
+  mint:    {label:'🍃 Mint',      bg:'#f0fbf7', card:'#ffffff', text:'#153a30', muted:'#6f9c8e', accent:'#0d9488', accentText:'#ffffff', border:'#cdeae1'},
+  langit:  {label:'☁️ Langit',    bg:'#eef6ff', card:'#ffffff', text:'#12314f', muted:'#6d8aa8', accent:'#0ea5e9', accentText:'#ffffff', border:'#d3e6f7'},
+  lavender:{label:'💜 Lavender',  bg:'#f5f2ff', card:'#ffffff', text:'#2f2350', muted:'#8b7fb5', accent:'#7c3aed', accentText:'#ffffff', border:'#e0d8fb'}
+};
+
+const DEFAULT_SETTINGS = {
+  appName: 'Catatan Barang & Kegiatan',
+  waAdmin: '',
+  kodeKhusus: 'ADMIN2025',
+  theme: 'ocean',
+  autoTheme: false,
+  dayTheme: 'salju',
+  nightTheme: 'ocean',
+  autoWa: false,
+  custom: { bg:'#0b1220', card:'#131c31', text:'#e6edf7', accent:'#3b9dff' },
+  bgImage: '',
+  fontSize: 15,
+  radius: 16
+};
+
+/* ================= STATE ================= */
+const state = {
+  users: loadLS(KEY.users, []),
+  records: loadLS(KEY.records, []),
+  settings: Object.assign({}, DEFAULT_SETTINGS, loadLS(KEY.settings, {})),
+  session: sessionStorage.getItem(KEY.session) || null,
+  editingId: null,
+  pendingFoto: ''
+};
+state.settings.custom = Object.assign({}, DEFAULT_SETTINGS.custom, state.settings.custom || {});
+
+function saveAll(){
+  saveLS(KEY.users, state.users);
+  saveLS(KEY.records, state.records);
+  saveLS(KEY.settings, state.settings);
+}
+
+/* ================= TEMA: APPLY ================= */
+function customPalette(c){
+  return {
+    label:'🎨 Custom', bg:c.bg, card:c.card, text:c.text,
+    muted: hexA(c.text, .62), accent:c.accent,
+    accentText: luminance(c.accent) > .55 ? '#0b0b0b' : '#ffffff',
+    border: hexA(c.text, .18)
+  };
+}
+function activePalette(){
+  const s = state.settings;
+  if(s.autoTheme){
+    const h = new Date().getHours();
+    const night = h >= 18 || h < 6;
+    const key = night ? s.nightTheme : s.dayTheme;
+    return THEMES[key] || THEMES.ocean;
+  }
+  if(s.theme === 'custom') return customPalette(s.custom);
+  return THEMES[s.theme] || THEMES.ocean;
+}
+function applyTheme(){
+  const s = state.settings, p = activePalette(), r = document.documentElement.style;
+  r.setProperty('--bg', p.bg);
+  r.setProperty('--card', p.card);
+  r.setProperty('--text', p.text);
+  r.setProperty('--muted', p.muted);
+  r.setProperty('--accent', p.accent);
+  r.setProperty('--accentText', p.accentText);
+  r.setProperty('--border', p.border);
+  r.setProperty('--radius', (s.radius||16)+'px');
+  r.setProperty('--fs', (s.fontSize||15)+'px');
+  document.body.style.backgroundImage = s.bgImage ? `url("${s.bgImage}")` : 'none';
+  document.title = s.appName;
+}
+
+/* ================= NAVIGASI ================= */
+function show(id){
+  $$('.view').forEach(v => v.classList.toggle('active', v.id === id));
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ================= CLOCK ================= */
+function tickClock(){
+  const d = new Date();
+  const el = $('#pubClock');
+  if(el){
+    el.innerHTML =
+      `<span>🕒 ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}</span>` +
+      `<span>📆 ${HARI[d.getDay()]}</span>` +
+      `<span>📅 ${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}</span>`;
+  }
+}
+
+/* ================= GROUPING ================= */
+function groupRecords(records, mode){
+  const map = new Map();
+  [...records].sort((a,b) => b.ts - a.ts).forEach(r => {
+    const d = new Date(r.ts);
+    let k;
+    if(mode === 'jam')       k = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}`;
+    else if(mode === 'none') k = 'ALL';
+    else                     k = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    if(!map.has(k)) map.set(k, []);
+    map.get(k).push(r);
+  });
+  return map;
+}
+function groupLabel(items, mode){
+  const p = dateParts(items[0].ts);
+  if(mode === 'none') return '📋 Semua Catatan';
+  if(mode === 'jam'){
+    const h = new Date(items[0].ts).getHours();
+    return `📅 ${p.hari}, ${p.tanggal} ${p.bulan} ${p.tahun} • 🕒 Pukul ${pad(h)}:00–${pad(h)}:59`;
+  }
+  return `📅 ${p.hari}, ${p.tanggal} ${p.bulan} ${p.tahun}`;
+}
+
+/* Simpan isi tiap tabel agar tombol Export PDF per tabel bisa mengaksesnya */
+const groupCache = new Map();
+
+/* ================= RENDER TABEL ================= */
+function buildTables(container, records, opts = {}){
+  const mode = opts.group || 'hari';
+  container.innerHTML = '';
+  if(!records || !records.length){
+    container.innerHTML = '<div class="empty">📭 Belum ada catatan untuk ditampilkan.</div>';
+    return;
+  }
+  const groups = groupRecords(records, mode);
+  let gi = 0;
+
+  groups.forEach(items => {
+    /* ⬇️ NOMOR MULAI DARI 1 LAGI DI SETIAP TABEL BARU */
+    let no = 1;
+    const total = items.reduce((a,b) => a + num(b.qty), 0);
+
+    // Kunci unik untuk tabel ini -> dipakai tombol Export PDF / WA di dalam grup
+    const cacheKey = `${container.id}|${mode}|${gi++}`;
+    groupCache.set(cacheKey, { items: items.slice(), mode });
+
+    const box = document.createElement('div');
+    box.className = 'group';
+    box.innerHTML = `
+      <div class="group-head">
+        <span class="badge grp">${esc(groupLabel(items, mode))}</span>
+        <span class="grp-actions">
+          <span class="muted small">${items.length} catatan • Total Qty: <b>${total}</b></span>
+          <button class="btn tiny" data-exp="${esc(cacheKey)}" title="Export tabel ini saja ke PDF">📄 Export PDF</button>
+          <button class="btn tiny wa" data-wagrp="${esc(cacheKey)}" title="Kirim tabel ini saja ke WhatsApp">💬 Kirim WA</button>
+        </span>
+      </div>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr>
+            <th>No</th><th>Jam</th><th>Hari</th><th>Tanggal</th><th>Bulan</th><th>Tahun</th>
+            <th>Nama Barang</th><th>Total/Qty</th><th>Deskripsi</th>
+            ${opts.foto ? '<th>Foto</th>' : ''}
+            ${opts.actions ? '<th>Aksi</th>' : ''}
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>`;
+
+    const tb = box.querySelector('tbody');
+    items.forEach(r => {
+      const d = dateParts(r.ts);
+      const tr = document.createElement('tr');
+      let html = `
+        <td>${no++}</td>
+        <td>${d.jam}</td>
+        <td>${d.hari}</td>
+        <td>${d.tanggal}</td>
+        <td>${d.bulan}</td>
+        <td>${d.tahun}</td>
+        <td><b>${esc(r.nama)}</b></td>
+        <td><span class="qty">${esc(r.qty)}</span></td>
+        <td class="desc">${esc(r.deskripsi) || '<span class="muted">-</span>'}</td>`;
+      if(opts.foto){
+        html += `<td>${ r.foto
+          ? `<img class="thumb" src="${r.foto}" data-foto="${r.id}" alt="foto">`
+          : '<span class="muted">-</span>' }</td>`;
+      }
+      if(opts.actions){
+        html += `<td class="acts">
+          <button class="btn tiny" data-act="edit" data-id="${r.id}" title="Edit">✏️</button>
+          <button class="btn tiny wa" data-act="wa" data-id="${r.id}" title="Kirim ke WA">💬</button>
+          <button class="btn tiny danger" data-act="del" data-id="${r.id}" title="Hapus">🗑️</button>
+        </td>`;
+      }
+      tr.innerHTML = html;
+      tb.appendChild(tr);
+    });
+    container.appendChild(box);
+  });
+
+  // Foto
+  container.querySelectorAll('[data-foto]').forEach(img => {
+    img.onclick = () => openFoto(img.dataset.foto);
+  });
+
+  // Aksi per baris
+  container.querySelectorAll('[data-act]').forEach(btn => {
+    btn.onclick = () => {
+      const r = state.records.find(x => x.id === btn.dataset.id);
+      if(!r) return;
+      if(btn.dataset.act === 'edit') startEdit(r);
+      if(btn.dataset.act === 'del')  deleteRecord(r);
+      if(btn.dataset.act === 'wa')   sendWaRecord(r);
+    };
+  });
+
+  // Export PDF & WA per tabel (grup)
+  container.querySelectorAll('[data-exp]').forEach(b => {
+    b.onclick = () => exportGroup(b.dataset.exp);
+  });
+  container.querySelectorAll('[data-wagrp]').forEach(b => {
+    b.onclick = () => waGroup(b.dataset.wagrp);
+  });
+}
+
+/* ================= EXPORT / WA PER TABEL ================= */
+function exportGroup(cacheKey){
+  const g = groupCache.get(cacheKey);
+  if(!g || !g.items.length) return toast('⚠️ Data tabel tidak ditemukan');
+  const label = groupLabel(g.items, g.mode).replace(/^[📅📋]\s*/,'');
+  buildPrintDoc(g.items, 'Laporan Tabel: ' + label, g.mode);
+}
+function waGroup(cacheKey){
+  const g = groupCache.get(cacheKey);
+  if(!g || !g.items.length) return toast('⚠️ Data tabel tidak ditemukan');
+  const label = groupLabel(g.items, g.mode).replace(/^[📅📋]\s*/,'');
+  sendWa(g.items, 'Laporan Tabel: ' + label);
+}
+
+/* ================= PENAMPIL FOTO: ZOOM, PAN, DOWNLOAD ================= */
+const fotoState = { scale: 1, tx: 0, ty: 0, id: null };
+
+function applyFotoTransform(){
+  const img = $('#modalImg');
+  if(!img) return;
+  img.style.transform = `translate(${fotoState.tx}px, ${fotoState.ty}px) scale(${fotoState.scale})`;
+  const lv = $('#zoomLevel');
+  if(lv) lv.textContent = Math.round(fotoState.scale * 100) + '%';
+  const body = $('#modalFotoBody');
+  if(body) body.style.cursor = fotoState.scale > 1 ? 'grab' : 'default';
+}
+
+function zoomFoto(delta){
+  fotoState.scale = Math.min(6, Math.max(0.2, +(fotoState.scale + delta).toFixed(2)));
+  if(fotoState.scale <= 1){ fotoState.tx = 0; fotoState.ty = 0; }
+  applyFotoTransform();
+}
+
+function resetZoom(){
+  fotoState.scale = 1; fotoState.tx = 0; fotoState.ty = 0;
+  applyFotoTransform();
+}
+
+function openFoto(id){
+  const r = state.records.find(x => x.id === id);
+  if(!r || !r.foto) return;
+  fotoState.id = id;
+  fotoState.scale = 1; fotoState.tx = 0; fotoState.ty = 0;
+  $('#modalImg').src = r.foto;
+  $('#modalFoto').classList.add('show');
+  applyFotoTransform();
+}
+
+function closeModalFoto(){
+  $('#modalFoto').classList.remove('show');
+  $('#modalImg').removeAttribute('src');
+  fotoState.id = null;
+  resetZoom();
+}
+
+/* Unduh gambar dengan nama file otomatis */
+function downloadFoto(){
+  const img = $('#modalImg');
+  const src = img && img.getAttribute('src');
+  if(!src) return toast('⚠️ Tidak ada gambar untuk diunduh');
+
+  const r = state.records.find(x => x.id === fotoState.id);
+  let name = 'foto';
+  if(r){
+    const d = new Date(r.ts);
+    const dp = dateParts(r.ts);
+    const clean = String(r.nama).replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,40) || 'barang';
+    name = `foto_${clean}_${dp.tahun}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${dp.jam.replace(':','-')}`;
+  }
+
+  const a = document.createElement('a');
+  a.href = src;
+  a.download = name + '.jpg';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  toast('⬇️ Foto berhasil diunduh');
+}
+
+/* Kontrol interaktif: scroll, geser, pinch */
+(function initFotoZoom(){
+  const body = $('#modalFotoBody');
+  const modal = $('#modalFoto');
+  if(!body || !modal) return;
+
+  let dragging = false, pinching = false;
+  let sx = 0, sy = 0, ox = 0, oy = 0, pinchStart = null;
+
+  // Zoom dengan scroll / trackpad
+  body.addEventListener('wheel', e => {
+    if(!modal.classList.contains('show')) return;
+    e.preventDefault();
+    zoomFoto(e.deltaY < 0 ? 0.15 : -0.15);
+  }, { passive:false });
+
+  // Geser gambar (pan)
+  body.addEventListener('pointerdown', e => {
+    if(pinching || fotoState.scale <= 1) return;
+    dragging = true;
+    body.classList.add('dragging');
+    try{ body.setPointerCapture(e.pointerId); }catch(_){}
+    sx = e.clientX; sy = e.clientY;
+    ox = fotoState.tx; oy = fotoState.ty;
+  });
+  body.addEventListener('pointermove', e => {
+    if(!dragging || pinching) return;
+    fotoState.tx = ox + (e.clientX - sx);
+    fotoState.ty = oy + (e.clientY - sy);
+    applyFotoTransform();
+  });
+  const stopDrag = () => { dragging = false; body.classList.remove('dragging'); };
+  body.addEventListener('pointerup', stopDrag);
+  body.addEventListener('pointercancel', stopDrag);
+  body.addEventListener('pointerleave', stopDrag);
+
+  // Pinch-to-zoom untuk layar sentuh
+  body.addEventListener('touchstart', e => {
+    if(e.touches.length === 2){
+      pinching = true;
+      stopDrag();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      pinchStart = { dist: Math.hypot(dx, dy) || 1, scale: fotoState.scale };
+    }
+  }, { passive:true });
+
+  body.addEventListener('touchmove', e => {
+    if(e.touches.length === 2 && pinchStart){
+      e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy) || 1;
+      fotoState.scale = Math.min(6, Math.max(0.2, +(pinchStart.scale * (dist / pinchStart.dist)).toFixed(2)));
+      applyFotoTransform();
+    }
+  }, { passive:false });
+
+  const endPinch = () => { pinching = false; pinchStart = null; };
+  body.addEventListener('touchend', endPinch);
+  body.addEventListener('touchcancel', endPinch);
+
+  // Tutup dengan tombol ESC
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape' && modal.classList.contains('show')) closeModalFoto();
+  });
+
+  // Klik area gelap di luar gambar untuk menutup
+  modal.addEventListener('click', e => {
+    if(e.target === modal) closeModalFoto();
+  });
+})();
+
+/* ================= DASHBOARD UMUM ================= */
+function renderPublic(){
+  const recs = state.records;
+  $('#pubAppName').textContent = state.settings.appName;
+
+  const q = ($('#pubSearch') ? $('#pubSearch').value : '').trim().toLowerCase();
+  let list = recs;
+  if(q) list = recs.filter(r => (r.nama + ' ' + r.qty + ' ' + (r.deskripsi||'')).toLowerCase().includes(q));
+
+  $('#pubTotalCatatan').textContent = recs.length;
+  $('#pubTotalQty').textContent = recs.reduce((a,b) => a + num(b.qty), 0);
+  $('#pubTotalHari').textContent = new Set(recs.map(r => fmtDateKey(r.ts))).size;
+  $('#pubTotalBarang').textContent = new Set(recs.map(r => String(r.nama).trim().toLowerCase())).size;
+
+  buildTables($('#pubTables'), list, { foto:true, actions:false, group:'hari' });
+}
+
+/* ================= DASHBOARD ADMIN ================= */
+function renderAdmin(){
+  const recs = state.records;
+  $('#admUser').textContent = state.session || '-';
+  $('#admAppName').textContent = 'Dashboard Admin • ' + state.settings.appName;
+
+  buildTables($('#admCatatanTables'), recs, { foto:true, actions:true, group:'hari' });
+
+  const q = ($('#dataSearch') ? $('#dataSearch').value : '').trim().toLowerCase();
+  let list = recs;
+  if(q) list = recs.filter(r => (r.nama + ' ' + r.qty + ' ' + (r.deskripsi||'') + ' ' + (r.author||'')).toLowerCase().includes(q));
+  const mode = ($('#dataGroup') ? $('#dataGroup').value : 'hari');
+  buildTables($('#admDataTables'), list, { foto:true, actions:false, group:mode });
+
+  renderUsers();
+}
+
+function renderUsers(){
+  const tb = $('#userTableBody');
+  tb.innerHTML = '';
+  if(!state.users.length){
+    tb.innerHTML = '<tr><td colspan="5" class="muted" style="text-align:center;padding:20px">Belum ada pengguna.</td></tr>';
+    return;
+  }
+  state.users.forEach((u,i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${i+1}</td>
+      <td><b>${esc(u.nama)}</b> ${u.role==='admin' ? '<span class="badge small">ADMIN</span>' : ''}</td>
+      <td>${esc(u.wa)}</td>
+      <td>${new Date(u.ts).toLocaleString('id-ID')}</td>
+      <td>${ state.session === u.nama
+            ? '<span class="muted small">(akun Anda)</span>'
+            : `<button class="btn tiny danger" data-del="${esc(u.nama)}">🗑️</button>` }</td>`;
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll('[data-del]').forEach(b => {
+    b.onclick = () => {
+      const nm = b.dataset.del;
+      if(!confirm('Hapus pengguna "' + nm + '"?')) return;
+      state.users = state.users.filter(u => u.nama !== nm);
+      saveAll(); renderUsers(); toast('🗑️ Pengguna dihapus');
+    };
+  });
+}
+
+function enterAdmin(){
+  show('viewAdmin');
+  fillSettings();
+  renderAdmin();
+}
+
+function logout(){
+  sessionStorage.removeItem(KEY.session);
+  state.session = null;
+  toast('👋 Logout berhasil');
+  show('viewPublic');
+  renderPublic();
+}
+
+/* ================= AUTH ================= */
+function handleRegister(e){
+  e.preventDefault();
+  const nama = $('#regNama').value.trim();
+  const pass = $('#regPass').value;
+  const wa   = $('#regWa').value.trim();
+  const kode = $('#regKode').value.trim();
+
+  if(nama.length < 3)  return toast('⚠️ Nama minimal 3 karakter');
+  if(pass.length < 4)  return toast('⚠️ Kata sandi minimal 4 karakter');
+  if(!normalizePhone(wa) || normalizePhone(wa).length < 10) return toast('⚠️ Nomor WhatsApp tidak valid');
+  if(state.users.some(u => u.nama.toLowerCase() === nama.toLowerCase())) return toast('⚠️ Nama sudah dipakai');
+
+  const isFirst = state.users.length === 0;
+  if(!isFirst && kode !== state.settings.kodeKhusus) return toast('❌ Kode khusus salah');
+
+  state.users.push({ nama, pass, wa, role: isFirst ? 'admin' : 'user', ts: Date.now() });
+  if(!state.settings.waAdmin) state.settings.waAdmin = wa;
+  saveAll();
+
+  toast('✅ Pendaftaran berhasil! Silakan login.');
+  $('#formRegister').reset();
+  show('viewLogin');
+}
+
+function handleLogin(e){
+  e.preventDefault();
+  const nama = $('#logNama').value.trim();
+  const pass = $('#logPass').value;
+  const u = state.users.find(x => x.nama.toLowerCase() === nama.toLowerCase() && x.pass === pass);
+  if(!u) return toast('❌ Nama atau kata sandi salah');
+
+  state.session = u.nama;
+  sessionStorage.setItem(KEY.session, u.nama);
+  $('#formLogin').reset();
+  toast('✅ Selamat datang, ' + u.nama + '!');
+  enterAdmin();
+}
+
+/* ================= CRUD CATATAN ================= */
+function handleFoto(e){
+  const f = e.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 720;
+      let w = img.width, h = img.height;
+      if(w > max){ h = Math.round(h * max / w); w = max; }
+      const cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      cv.getContext('2d').drawImage(img, 0, 0, w, h);
+      state.pendingFoto = cv.toDataURL('image/jpeg', 0.72);
+      showFotoPreview();
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(f);
+}
+
+function showFotoPreview(){
+  const box = $('#fotoPreview');
+  if(!state.pendingFoto){ box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="row gap" style="margin-bottom:6px">
+      <img src="${state.pendingFoto}" style="width:90px;height:90px;object-fit:cover;border-radius:12px;border:1px solid var(--border)">
+      <button type="button" class="btn tiny danger" onclick="clearFoto()">✖ Hapus Foto</button>
+    </div>`;
+}
+
+function clearFoto(){
+  state.pendingFoto = '';
+  $('#inFoto').value = '';
+  $('#fotoPreview').innerHTML = '';
+}
+
+function saveRecord(e){
+  e.preventDefault();
+  const nama  = $('#inNama').value.trim();
+  const qty   = $('#inQty').value.trim() || '-';
+  const desc  = $('#inDesc').value.trim();
+
+  if(!nama) return toast('⚠️ Nama barang wajib diisi');
+
+  if(state.editingId){
+    const r = state.records.find(x => x.id === state.editingId);
+    if(r){
+      r.nama = nama; r.qty = qty; r.deskripsi = desc;
+      if(state.pendingFoto) r.foto = state.pendingFoto;
+      toast('✅ Catatan diperbarui');
+    }
+  } else {
+    state.records.unshift({
+      id: uid(), ts: Date.now(), nama, qty, deskripsi: desc,
+      foto: state.pendingFoto || '', author: state.session || '-'
+    });
+    toast('✅ Catatan disimpan');
+  }
+  saveAll();
+  resetForm();
+  renderAdmin();
+  renderPublic();
+
+  if(state.settings.autoWa && !state.editingId){
+    const latest = state.records[0];
+    setTimeout(() => sendWaRecord(latest), 350);
+  }
+}
+
+function resetForm(){
+  state.editingId = null;
+  state.pendingFoto = '';
+  $('#formRecord').reset();
+  $('#fotoPreview').innerHTML = '';
+  $('#editHint').textContent = '';
+}
+
+function startEdit(r){
+  state.editingId = r.id;
+  state.pendingFoto = '';
+  $('#inNama').value = r.nama;
+  $('#inQty').value = r.qty;
+  $('#inDesc').value = r.deskripsi || '';
+  $('#fotoPreview').innerHTML = r.foto
+    ? `<div class="row gap" style="margin-bottom:6px">
+        <img src="${r.foto}" style="width:90px;height:90px;object-fit:cover;border-radius:12px;border:1px solid var(--border)">
+        <span class="muted small">Foto lama akan tetap dipakai jika tidak diganti.</span>
+       </div>`
+    : '';
+  $('#editHint').textContent = '✏️ Mode edit — ubah lalu tekan Simpan';
+  switchTab('tabCatatan');
+  window.scrollTo({top:120, behavior:'smooth'});
+}
+
+function deleteRecord(r){
+  if(!confirm('Hapus catatan "' + r.nama + '" tanggal ' + dateParts(r.ts).full + '?')) return;
+  state.records = state.records.filter(x => x.id !== r.id);
+  saveAll(); renderAdmin(); renderPublic();
+  toast('🗑️ Catatan dihapus');
+}
+
+/* ================= WHATSAPP ================= */
+function waAdminNumber(){
+  if(state.settings.waAdmin) return state.settings.waAdmin;
+  const a = state.users.find(u => u.role === 'admin');
+  return a ? a.wa : '';
+}
+function waLink(phone, text){
+  return 'https://wa.me/' + normalizePhone(phone) + '?text=' + encodeURIComponent(text);
+}
+function buildMessage(records, title){
+  const groups = groupRecords(records, 'hari');
+  let msg = `*${state.settings.appName}*\n_${title}_\n\n`;
+  let n = 0, total = 0;
+
+  groups.forEach(items => {
+    const p = dateParts(items[0].ts);
+    msg += `📅 *${p.hari}, ${p.tanggal} ${p.bulan} ${p.tahun}*\n`;
+    items.forEach(r => {
+      n++;
+      total += num(r.qty);
+      const d = dateParts(r.ts);
+      msg += `${n}. [${d.jam}] *${r.nama}* — Qty: ${r.qty}\n`;
+      if(r.deskripsi) msg += `     _${r.deskripsi}_\n`;
+    });
+    msg += '\n';
+  });
+
+  msg += `━━━━━━━━━━━━━━\n`;
+  msg += `Total catatan: *${n}*\n`;
+  msg += `Total Qty: *${total}*\n`;
+  msg += `Dikirim: ${new Date().toLocaleString('id-ID')}`;
+  return msg;
+}
+function sendWa(records, title){
+  const no = waAdminNumber();
+  if(!no) return toast('⚠️ Nomor WhatsApp admin belum diatur (isi di Pengaturan)');
+  if(!records.length) return toast('📭 Belum ada data untuk dikirim');
+  window.open(waLink(no, buildMessage(records, title)), '_blank');
+}
+function sendWaRecord(r){
+  const no = waAdminNumber();
+  if(!no) return toast('⚠️ Nomor WhatsApp admin belum diatur');
+  const d = dateParts(r.ts);
+  let msg = `*${state.settings.appName}*\n\n`;
+  msg += `Hari: ${d.hari}\nTanggal: ${d.tanggal} ${d.bulan} ${d.tahun}\nJam: ${d.jam}\n`;
+  msg += `Nama Barang: *${r.nama}*\nTotal/Qty: ${r.qty}\n`;
+  if(r.deskripsi) msg += `Deskripsi: ${r.deskripsi}\n`;
+  msg += `\nDikirim oleh: ${state.session || 'Pengunjung'}\n${new Date().toLocaleString('id-ID')}`;
+  window.open(waLink(no, msg), '_blank');
+}
+function waPublic(){ sendWa(state.records, 'Laporan Data Catatan'); }
+function waData(){
+  const q = ($('#dataSearch').value || '').trim().toLowerCase();
+  let list = state.records;
+  if(q) list = list.filter(r => (r.nama + ' ' + r.qty + ' ' + (r.deskripsi||'')).toLowerCase().includes(q));
+  sendWa(list, 'Laporan Data Catatan (terfilter)');
+}
+
+/* ================= EXPORT PDF ================= */
+function buildPrintDoc(records, title, groupMode){
+  const groups = groupRecords(records, groupMode || 'hari');
+  let rows = '';
+
+  groups.forEach(items => {
+    /* ⬇️ NOMOR MULAI DARI 1 LAGI DI SETIAP TABEL PDF */
+    let no = 0;
+    const total = items.reduce((a,b) => a + num(b.qty), 0);
+    rows += `<tr class="grp"><td colspan="9">${esc(groupLabel(items, groupMode || 'hari'))} &nbsp;•&nbsp; ${items.length} catatan &nbsp;•&nbsp; Total Qty: ${total}</td></tr>`;
+    items.forEach(r => {
+      const d = dateParts(r.ts);
+      rows += `<tr>
+        <td>${++no}</td><td>${d.jam}</td><td>${d.hari}</td><td>${d.tanggal}</td>
+        <td>${d.bulan}</td><td>${d.tahun}</td><td>${esc(r.nama)}</td>
+        <td>${esc(r.qty)}</td><td>${esc(r.deskripsi) || '-'}</td>
+      </tr>`;
+    });
+  });
+
+  const win = window.open('', '_blank');
+  if(!win) return toast('⚠️ Popup diblokir browser — izinkan popup untuk export PDF');
+
+  win.document.write(`<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
+  <title>${esc(title)}</title>
+  <style>
+    *{box-sizing:border-box}
+    body{font-family:Arial,Helvetica,sans-serif;padding:22px;color:#111}
+    h1{font-size:19px;margin:0 0 4px}
+    .sub{color:#666;font-size:11px;margin-bottom:14px}
+    table{width:100%;border-collapse:collapse;font-size:11px}
+    th,td{border:1px solid #999;padding:5px 6px;text-align:left;vertical-align:top}
+    th{background:#e8eefc}
+    tr.grp td{background:#f2f2f2;font-weight:bold;font-size:11.5px}
+    .foot{margin-top:16px;font-size:10px;color:#777;text-align:right}
+    @page{size:A4 landscape;margin:12mm}
+  </style></head><body>
+    <h1>${esc(state.settings.appName)}</h1>
+    <div class="sub">${esc(title)} &nbsp;•&nbsp; Dicetak: ${new Date().toLocaleString('id-ID')} &nbsp;•&nbsp; Total ${records.length} catatan</div>
+    <table>
+      <thead><tr>
+        <th>No</th><th>Jam</th><th>Hari</th><th>Tanggal</th><th>Bulan</th><th>Tahun</th>
+        <th>Nama Barang</th><th>Total/Qty</th><th>Deskripsi</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="foot">Dokumen dibuat otomatis oleh ${esc(state.settings.appName)}</div>
+    <script>setTimeout(function(){window.print();},500);<\/script>
+  </body></html>`);
+  win.document.close();
+}
+function exportPublic(){ buildPrintDoc(state.records, 'Laporan Data Catatan', 'hari'); }
+function exportAll(){ buildPrintDoc(state.records, 'Laporan Seluruh Catatan', 'hari'); }
+function exportData(){
+  const q = ($('#dataSearch').value || '').trim().toLowerCase();
+  let list = state.records;
+  if(q) list = list.filter(r => (r.nama + ' ' + r.qty + ' ' + (r.deskripsi||'')).toLowerCase().includes(q));
+  buildPrintDoc(list, 'Laporan Data Catatan (terfilter)', $('#dataGroup').value);
+}
+
+/* ================= PENGATURAN ================= */
+function renderThemeGrid(){
+  const grid = $('#themeGrid');
+  grid.innerHTML = '';
+
+  Object.entries(THEMES).forEach(([key, t]) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'swatch' + (state.settings.theme === key && !state.settings.autoTheme ? ' active' : '');
+    b.innerHTML = `<span class="sw-dots">
+        <i style="background:${t.bg}"></i><i style="background:${t.card}"></i><i style="background:${t.accent}"></i>
+      </span><span>${t.label}</span>`;
+    b.onclick = () => {
+      state.settings.theme = key;
+      state.settings.autoTheme = false;
+      $('#setAutoTheme').checked = false;
+      saveAll(); applyTheme(); renderThemeGrid();
+      toast('🎨 Tema: ' + t.label);
+    };
+    grid.appendChild(b);
+  });
+
+  const b2 = document.createElement('button');
+  b2.type = 'button';
+  const c = state.settings.custom;
+  b2.className = 'swatch' + (state.settings.theme === 'custom' && !state.settings.autoTheme ? ' active' : '');
+  b2.innerHTML = `<span class="sw-dots">
+      <i style="background:${c.bg}"></i><i style="background:${c.card}"></i><i style="background:${c.accent}"></i>
+    </span><span>🎨 Custom</span>`;
+  b2.onclick = () => {
+    state.settings.theme = 'custom';
+    state.settings.autoTheme = false;
+    $('#setAutoTheme').checked = false;
+    saveAll(); applyTheme(); renderThemeGrid();
+    toast('🎨 Tema Custom aktif');
+  };
+  grid.appendChild(b2);
+}
+
+function fillSettings(){
+  const s = state.settings;
+  $('#setAppName').value = s.appName;
+  $('#setWa').value = s.waAdmin;
+  $('#setKode').value = s.kodeKhusus;
+  $('#setBgImage').value = s.bgImage || '';
+  $('#setFont').value = s.fontSize;
+  $('#setRadius').value = s.radius;
+  $('#lblFont').textContent = s.fontSize;
+  $('#lblRadius').textContent = s.radius;
+  $('#setAutoTheme').checked = !!s.autoTheme;
+  $('#setAutoWa').checked = !!s.autoWa;
+
+  const opts = Object.entries(THEMES).map(([k,t]) => `<option value="${k}">${t.label}</option>`).join('');
+  $('#setDayTheme').innerHTML = opts;
+  $('#setNightTheme').innerHTML = opts;
+  $('#setDayTheme').value = s.dayTheme;
+  $('#setNightTheme').value = s.nightTheme;
+
+  $('#custBg').value = s.custom.bg;
+  $('#custCard').value = s.custom.card;
+  $('#custText').value = s.custom.text;
+  $('#custAccent').value = s.custom.accent;
+
+  const me = state.users.find(u => u.nama === state.session);
+  const isAdmin = me && me.role === 'admin';
+  $('#kodeWrap').style.display = isAdmin ? 'block' : 'none';
+
+  renderThemeGrid();
+}
+
+function readCustom(){
+  state.settings.custom = {
+    bg: $('#custBg').value,
+    card: $('#custCard').value,
+    text: $('#custText').value,
+    accent: $('#custAccent').value
+  };
+}
+
+function saveSettings(){
+  const s = state.settings;
+  s.appName = $('#setAppName').value.trim() || 'Catatan';
+  s.waAdmin = $('#setWa').value.trim();
+  s.kodeKhusus = $('#setKode').value.trim() || 'ADMIN2025';
+  s.bgImage = $('#setBgImage').value.trim();
+  s.fontSize = parseInt($('#setFont').value, 10);
+  s.radius = parseInt($('#setRadius').value, 10);
+  s.autoTheme = $('#setAutoTheme').checked;
+  s.autoWa = $('#setAutoWa').checked;
+  s.dayTheme = $('#setDayTheme').value;
+  s.nightTheme = $('#setNightTheme').value;
+  readCustom();
+
+  saveAll();
+  applyTheme();
+  renderThemeGrid();
+  renderPublic();
+  renderAdmin();
+  toast('💾 Pengaturan tersimpan');
+}
+
+function randomTheme(){
+  const keys = Object.keys(THEMES);
+  const key = keys[Math.floor(Math.random() * keys.length)];
+  state.settings.theme = key;
+  state.settings.autoTheme = false;
+  $('#setAutoTheme').checked = false;
+  saveAll(); applyTheme(); renderThemeGrid();
+  toast('🎲 Tema acak: ' + THEMES[key].label);
+}
+
+function seedDemo(){
+  const barang = [
+    ['Kertas A4', '12 rim', 'Stok gudang lantai 2'],
+    ['Tinta Printer', '5 botol', 'Warna hitam & biru'],
+    ['Air Minum Galon', '8 galon', 'Untuk rapat bulanan'],
+    ['Kabel USB-C', 'banyak', 'Campuran baru & bekas'],
+    ['Snack Rapat', '3 dus', 'Dibeli pagi tadi']
+  ];
+  const now = Date.now();
+  barang.forEach((b, i) => {
+    state.records.unshift({
+      id: uid(),
+      ts: now - (i * 1000 * 60 * 37) - (i >= 3 ? 1000*60*60*26 : 0),
+      nama: b[0], qty: b[1], deskripsi: b[2], foto: '', author: state.session || '-'
+    });
+  });
+  saveAll(); renderAdmin(); renderPublic();
+  toast('🧪 5 data contoh ditambahkan');
+}
+
+function wipeRecords(){
+  if(!confirm('Hapus SEMUA catatan? Tindakan ini tidak bisa dibatalkan.')) return;
+  state.records = [];
+  groupCache.clear();
+  saveAll(); renderAdmin(); renderPublic();
+  toast('🗑️ Semua catatan dihapus');
+}
+
+/* ================= TAB ================= */
+function switchTab(id){
+  $$('.tab').forEach(x => x.classList.toggle('active', x.dataset.tab === id));
+  $$('.tabpane').forEach(x => x.classList.toggle('active', x.id === id));
+}
+
+/* ================= INIT ================= */
+document.addEventListener('DOMContentLoaded', () => {
+  applyTheme();
+  tickClock();
+  setInterval(tickClock, 1000);
+  setInterval(() => { if(state.settings.autoTheme) applyTheme(); }, 60000);
+
+  // Tab admin
+  $$('.tab').forEach(t => t.onclick = () => switchTab(t.dataset.tab));
+
+  // Form
+  $('#formLogin').addEventListener('submit', handleLogin);
+  $('#formRegister').addEventListener('submit', handleRegister);
+  $('#formRecord').addEventListener('submit', saveRecord);
+  $('#inFoto').addEventListener('change', handleFoto);
+
+  // Pencarian & filter
+  $('#pubSearch').addEventListener('input', renderPublic);
+  $('#dataSearch').addEventListener('input', renderAdmin);
+  $('#dataGroup').addEventListener('change', renderAdmin);
+
+  // Live preview warna custom
+  ['custBg','custCard','custText','custAccent'].forEach(id => {
+    $('#'+id).addEventListener('input', () => {
+      readCustom();
+      if(state.settings.theme === 'custom' && !state.settings.autoTheme){
+        applyTheme();
+        renderThemeGrid();
+      }
+    });
+  });
+  $('#setFont').addEventListener('input', e => {
+    $('#lblFont').textContent = e.target.value;
+    state.settings.fontSize = parseInt(e.target.value, 10);
+    applyTheme();
+  });
+  $('#setRadius').addEventListener('input', e => {
+    $('#lblRadius').textContent = e.target.value;
+    state.settings.radius = parseInt(e.target.value, 10);
+    applyTheme();
+  });
+  $('#setAutoTheme').addEventListener('change', e => {
+    state.settings.autoTheme = e.target.checked;
+    applyTheme(); renderThemeGrid();
+  });
+
+  // Petunjuk kode khusus
+  const updateHint = () => {
+    if(state.users.length === 0){
+      $('#regHint').innerHTML = 'Akun pertama otomatis menjadi <b>Super Admin</b> tanpa kode khusus.';
+    } else {
+      $('#regHint').innerHTML = 'Masukkan <b>Kode Khusus</b> yang diberikan Super Admin untuk mendaftar.';
+    }
+  };
+  updateHint();
+  setInterval(updateHint, 3000);
+
+  // Tampilan awal
+  renderPublic();
+  if(state.session && state.users.some(u => u.nama === state.session)){
+    enterAdmin();
+  } else {
+    state.session = null;
+    show('viewPublic');
+  }
+});
+</script>
+</body>
+</html>
