@@ -144,6 +144,50 @@ input[type=color]{width:100%;height:42px;padding:3px;border-radius:10px;border:1
 }
 #toast.show{opacity:1;transform:translate(-50%,0)}
 
+/* ===== FOOTER & STATUS FIREBASE ===== */
+.footer{
+  text-align:center;
+  padding:28px 16px 20px;
+  color:var(--muted);
+  font-size:.85em;
+  line-height:1.75;
+  border-top:1px solid var(--border);
+  margin-top:28px;
+}
+.footer .fb-brand{
+  font-weight:700;
+  color:var(--text);
+  font-size:1.02em;
+  letter-spacing:.2px;
+  margin-bottom:4px;
+}
+.footer .fb-line{ opacity:.9; }
+.footer .fb-status{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin-top:10px;
+  padding:6px 14px;
+  border-radius:999px;
+  background:rgba(127,127,127,.10);
+  border:1px solid var(--border);
+  font-size:.9em;
+}
+.footer .dot{
+  width:9px;height:9px;border-radius:50%;
+  background:#f0b429;
+  box-shadow:0 0 0 3px rgba(240,180,41,.22);
+  transition:.3s;
+}
+.footer .dot.online{ background:#25D366; box-shadow:0 0 0 3px rgba(37,211,102,.25); }
+.footer .dot.offline{ background:#e0455a; box-shadow:0 0 0 3px rgba(224,69,90,.25); }
+.footer .dot.connecting{
+  background:#f0b429;
+  box-shadow:0 0 0 3px rgba(240,180,41,.25);
+  animation:pulse 1.2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
 /* ===== PENAMPIL FOTO: ZOOM, PAN, DOWNLOAD ===== */
 .modal{ display:none; position:fixed; inset:0; z-index:150; background:rgba(0,0,0,.92); padding:14px; }
 .modal.show{ display:grid; place-items:center; }
@@ -223,6 +267,15 @@ input[type=color]{width:100%;height:42px;padding:3px;border-radius:10px;border:1
       <p class="muted small">Setiap tabel punya tombol <b>📄 Export PDF</b> sendiri, dan nomor otomatis mulai dari <b>1</b> di setiap tanggal.</p>
       <div id="pubTables"></div>
     </section>
+
+    <footer class="footer">
+      <div class="fb-brand">© <span class="fb-year"></span> Catatan Barang &amp; Kegiatan</div>
+      <div class="fb-line">Dibuat dengan ❤️ · Semua Hak Dilindungi</div>
+      <div class="fb-status">
+        <span class="dot fb-dot"></span>
+        <span class="fb-text">Menghubungkan ke Firebase…</span>
+      </div>
+    </footer>
   </main>
 </div>
 
@@ -236,6 +289,9 @@ input[type=color]{width:100%;height:42px;padding:3px;border-radius:10px;border:1
       <button class="btn primary" type="submit">Masuk ke Dashboard Admin</button>
       <button class="btn ghost" type="button" onclick="show('viewRegister')">Belum punya akun? Daftar</button>
       <button class="btn ghost" type="button" onclick="show('viewPublic')">← Dashboard Umum</button>
+      <footer class="footer" style="border:none;margin-top:18px">
+        <div class="fb-line">© <span class="fb-year"></span> Catatan Barang &amp; Kegiatan</div>
+      </footer>
     </form>
   </div>
 </div>
@@ -253,6 +309,9 @@ input[type=color]{width:100%;height:42px;padding:3px;border-radius:10px;border:1
       <button class="btn primary" type="submit">Daftar Sekarang</button>
       <button class="btn ghost" type="button" onclick="show('viewLogin')">Sudah punya akun? Login</button>
       <button class="btn ghost" type="button" onclick="show('viewPublic')">← Dashboard Umum</button>
+      <footer class="footer" style="border:none;margin-top:18px">
+        <div class="fb-line">© <span class="fb-year"></span> Catatan Barang &amp; Kegiatan</div>
+      </footer>
     </form>
   </div>
 </div>
@@ -414,6 +473,14 @@ input[type=color]{width:100%;height:42px;padding:3px;border-radius:10px;border:1
       </div>
     </section>
 
+    <footer class="footer">
+      <div class="fb-brand">© <span class="fb-year"></span> Catatan Barang &amp; Kegiatan</div>
+      <div class="fb-line">Dibuat dengan ❤️ · Semua Hak Dilindungi</div>
+      <div class="fb-status">
+        <span class="dot fb-dot"></span>
+        <span class="fb-text">Menghubungkan ke Firebase…</span>
+      </div>
+    </footer>
   </main>
 </div>
 
@@ -436,6 +503,10 @@ input[type=color]{width:100%;height:42px;padding:3px;border-radius:10px;border:1
     </div>
   </div>
 </div>
+
+<!-- ============ FIREBASE SDK (compat — cocok untuk HTML vanilla) ============ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
 <script>
 /* ================= UTIL ================= */
@@ -491,6 +562,146 @@ function luminance(hex){
   if(h.length !== 6) return 0;
   const r = parseInt(h.slice(0,2),16)/255, g = parseInt(h.slice(2,4),16)/255, b = parseInt(h.slice(4,6),16)/255;
   return 0.2126*r + 0.7152*g + 0.0722*b;
+}
+
+/* ================= FIREBASE INIT ================= */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDPYk9RxqGVOZJ0o6tzifga_K3q9rgWDhY",
+  authDomain: "catatan-50d54.firebaseapp.com",
+  databaseURL: "https://catatan-50d54-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "catatan-50d54",
+  storageBucket: "catatan-50d54.firebasestorage.app",
+  messagingSenderId: "1095927709978",
+  appId: "1:1095927709978:web:b79face7b2ef0d7242aca3",
+  measurementId: "G-7PZZS224LE"
+};
+
+let fbDb = null;
+let fbReady = false;
+let fbMode = 'offline'; // connecting | online | offline
+
+(function initFirebase(){
+  try{
+    if(typeof firebase === 'undefined' || !firebase.initializeApp){
+      console.warn('⚠️ Firebase SDK tidak tersedia — fallback ke localStorage');
+      return;
+    }
+    if(!firebase.apps || !firebase.apps.length){
+      firebase.initializeApp(FIREBASE_CONFIG);
+    }
+    fbDb = firebase.database();
+    fbReady = true;
+    fbMode = 'connecting';
+    console.log('%c🔥 Firebase Realtime Database siap','color:#f0b429;font-weight:bold');
+  }catch(e){
+    console.warn('❌ Firebase init gagal:', e);
+    fbReady = false;
+    fbMode = 'offline';
+  }
+})();
+
+/* ============ Helper wrapper Firebase ============ */
+function fbSet(path, val){
+  if(!fbReady) return Promise.resolve(false);
+  return fbDb.ref(path).set(val).then(()=>true).catch(e=>{ console.warn('FB set err:',path,e); return false; });
+}
+function fbRemove(path){
+  if(!fbReady) return Promise.resolve(false);
+  return fbDb.ref(path).remove().then(()=>true).catch(e=>{ console.warn('FB rm err:',path,e); return false; });
+}
+function safeKey(s){
+  return String(s||'').toLowerCase().trim().replace(/[.#$\[\]\/\s]+/g,'_').slice(0,80) || 'user';
+}
+
+/* ============ Update indikator status ============ */
+function updateFbStatus(status){
+  fbMode = status;
+  const label = status === 'online'   ? 'Terhubung • Firebase Realtime (Live)'
+              : status === 'connecting' ? 'Menghubungkan ke Firebase…'
+              : 'Mode Offline — Data Lokal (localStorage)';
+  $$('.fb-dot').forEach(d => {
+    d.classList.remove('online','offline','connecting');
+    d.classList.add(status);
+  });
+  $$('.fb-text').forEach(t => t.textContent = label);
+}
+
+/* ============ Listener Realtime ============ */
+function startFirebaseListeners(){
+  if(!fbReady) return;
+
+  /* Records realtime */
+  fbDb.ref('records').on('value', snap => {
+    const data = snap.val();
+    state.records = data && typeof data === 'object'
+      ? Object.values(data).filter(r => r && r.id).sort((a,b) => (b.ts||0) - (a.ts||0))
+      : [];
+    saveLS(KEY.records, state.records);
+    renderPublic();
+    if($('#viewAdmin').classList.contains('active')) renderAdmin();
+  }, err => {
+    console.warn('FB read records error:', err);
+    updateFbStatus('offline');
+  });
+
+  /* Users realtime */
+  fbDb.ref('users').on('value', snap => {
+    const data = snap.val() || {};
+    state.users = Object.values(data).filter(u => u && u.nama);
+    saveLS(KEY.users, state.users);
+    if($('#viewAdmin').classList.contains('active')) renderUsers();
+  }, err => console.warn('FB read users error:', err));
+
+  /* Settings realtime */
+  fbDb.ref('settings').on('value', snap => {
+    const val = snap.val();
+    if(val && typeof val === 'object'){
+      state.settings = Object.assign({}, DEFAULT_SETTINGS, val);
+      state.settings.custom = Object.assign({}, DEFAULT_SETTINGS.custom, val.custom || {});
+      saveLS(KEY.settings, state.settings);
+      applyTheme();
+      if($('#viewAdmin').classList.contains('active')) fillSettings();
+    }
+  }, err => console.warn('FB read settings error:', err));
+
+  /* Status koneksi live */
+  fbDb.ref('.info/connected').on('value', snap => {
+    updateFbStatus(snap.val() ? 'online' : 'offline');
+  });
+}
+
+/* ============ Sinkronisasi awal (seed dari lokal ke FB jika kosong) ============ */
+async function bootFirebase(){
+  if(!fbReady){ updateFbStatus('offline'); return; }
+  updateFbStatus('connecting');
+
+  try{
+    const recSnap = await fbDb.ref('records').once('value');
+    if(!recSnap.exists() && state.records.length){
+      const obj = {};
+      state.records.forEach(r => { if(r && r.id) obj[r.id] = r; });
+      await fbDb.ref('records').set(obj);
+      console.log('⬆️ Data catatan lokal diunggah ke Firebase');
+    }
+  }catch(e){ console.warn('Seed records gagal:', e); }
+
+  try{
+    const usrSnap = await fbDb.ref('users').once('value');
+    if(!usrSnap.exists() && state.users.length){
+      const obj = {};
+      state.users.forEach(u => { if(u && u.nama) obj[safeKey(u.nama)] = u; });
+      await fbDb.ref('users').set(obj);
+    }
+  }catch(e){ console.warn('Seed users gagal:', e); }
+
+  try{
+    const setSnap = await fbDb.ref('settings').once('value');
+    if(!setSnap.exists()){
+      await fbDb.ref('settings').set(state.settings);
+    }
+  }catch(e){ console.warn('Seed settings gagal:', e); }
+
+  startFirebaseListeners();
 }
 
 /* ================= TEMA ================= */
@@ -618,7 +829,6 @@ function groupLabel(items, mode){
   return `📅 ${p.hari}, ${p.tanggal} ${p.bulan} ${p.tahun}`;
 }
 
-/* Simpan isi tiap tabel agar tombol Export PDF per tabel bisa mengaksesnya */
 const groupCache = new Map();
 
 /* ================= RENDER TABEL ================= */
@@ -633,11 +843,10 @@ function buildTables(container, records, opts = {}){
   let gi = 0;
 
   groups.forEach(items => {
-    /* ⬇️ NOMOR MULAI DARI 1 LAGI DI SETIAP TABEL BARU */
+    /* Nomor mulai dari 1 lagi di setiap tabel baru */
     let no = 1;
     const total = items.reduce((a,b) => a + num(b.qty), 0);
 
-    // Kunci unik untuk tabel ini -> dipakai tombol Export PDF / WA di dalam grup
     const cacheKey = `${container.id}|${mode}|${gi++}`;
     groupCache.set(cacheKey, { items: items.slice(), mode });
 
@@ -696,12 +905,9 @@ function buildTables(container, records, opts = {}){
     container.appendChild(box);
   });
 
-  // Foto
   container.querySelectorAll('[data-foto]').forEach(img => {
     img.onclick = () => openFoto(img.dataset.foto);
   });
-
-  // Aksi per baris
   container.querySelectorAll('[data-act]').forEach(btn => {
     btn.onclick = () => {
       const r = state.records.find(x => x.id === btn.dataset.id);
@@ -711,8 +917,6 @@ function buildTables(container, records, opts = {}){
       if(btn.dataset.act === 'wa')   sendWaRecord(r);
     };
   });
-
-  // Export PDF & WA per tabel (grup)
   container.querySelectorAll('[data-exp]').forEach(b => {
     b.onclick = () => exportGroup(b.dataset.exp);
   });
@@ -735,7 +939,7 @@ function waGroup(cacheKey){
   sendWa(g.items, 'Laporan Tabel: ' + label);
 }
 
-/* ================= PENAMPIL FOTO: ZOOM, PAN, DOWNLOAD ================= */
+/* ================= PENAMPIL FOTO ================= */
 const fotoState = { scale: 1, tx: 0, ty: 0, id: null };
 
 function applyFotoTransform(){
@@ -747,18 +951,15 @@ function applyFotoTransform(){
   const body = $('#modalFotoBody');
   if(body) body.style.cursor = fotoState.scale > 1 ? 'grab' : 'default';
 }
-
 function zoomFoto(delta){
   fotoState.scale = Math.min(6, Math.max(0.2, +(fotoState.scale + delta).toFixed(2)));
   if(fotoState.scale <= 1){ fotoState.tx = 0; fotoState.ty = 0; }
   applyFotoTransform();
 }
-
 function resetZoom(){
   fotoState.scale = 1; fotoState.tx = 0; fotoState.ty = 0;
   applyFotoTransform();
 }
-
 function openFoto(id){
   const r = state.records.find(x => x.id === id);
   if(!r || !r.foto) return;
@@ -768,20 +969,16 @@ function openFoto(id){
   $('#modalFoto').classList.add('show');
   applyFotoTransform();
 }
-
 function closeModalFoto(){
   $('#modalFoto').classList.remove('show');
   $('#modalImg').removeAttribute('src');
   fotoState.id = null;
   resetZoom();
 }
-
-/* Unduh gambar dengan nama file otomatis */
 function downloadFoto(){
   const img = $('#modalImg');
   const src = img && img.getAttribute('src');
   if(!src) return toast('⚠️ Tidak ada gambar untuk diunduh');
-
   const r = state.records.find(x => x.id === fotoState.id);
   let name = 'foto';
   if(r){
@@ -790,7 +987,6 @@ function downloadFoto(){
     const clean = String(r.nama).replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,40) || 'barang';
     name = `foto_${clean}_${dp.tahun}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${dp.jam.replace(':','-')}`;
   }
-
   const a = document.createElement('a');
   a.href = src;
   a.download = name + '.jpg';
@@ -800,23 +996,19 @@ function downloadFoto(){
   toast('⬇️ Foto berhasil diunduh');
 }
 
-/* Kontrol interaktif: scroll, geser, pinch */
 (function initFotoZoom(){
   const body = $('#modalFotoBody');
   const modal = $('#modalFoto');
   if(!body || !modal) return;
-
   let dragging = false, pinching = false;
   let sx = 0, sy = 0, ox = 0, oy = 0, pinchStart = null;
 
-  // Zoom dengan scroll / trackpad
   body.addEventListener('wheel', e => {
     if(!modal.classList.contains('show')) return;
     e.preventDefault();
     zoomFoto(e.deltaY < 0 ? 0.15 : -0.15);
   }, { passive:false });
 
-  // Geser gambar (pan)
   body.addEventListener('pointerdown', e => {
     if(pinching || fotoState.scale <= 1) return;
     dragging = true;
@@ -836,7 +1028,6 @@ function downloadFoto(){
   body.addEventListener('pointercancel', stopDrag);
   body.addEventListener('pointerleave', stopDrag);
 
-  // Pinch-to-zoom untuk layar sentuh
   body.addEventListener('touchstart', e => {
     if(e.touches.length === 2){
       pinching = true;
@@ -862,12 +1053,9 @@ function downloadFoto(){
   body.addEventListener('touchend', endPinch);
   body.addEventListener('touchcancel', endPinch);
 
-  // Tutup dengan tombol ESC
   document.addEventListener('keydown', e => {
     if(e.key === 'Escape' && modal.classList.contains('show')) closeModalFoto();
   });
-
-  // Klik area gelap di luar gambar untuk menutup
   modal.addEventListener('click', e => {
     if(e.target === modal) closeModalFoto();
   });
@@ -931,6 +1119,8 @@ function renderUsers(){
       const nm = b.dataset.del;
       if(!confirm('Hapus pengguna "' + nm + '"?')) return;
       state.users = state.users.filter(u => u.nama !== nm);
+      // Sync hapus ke Firebase
+      fbRemove('users/' + safeKey(nm));
       saveAll(); renderUsers(); toast('🗑️ Pengguna dihapus');
     };
   });
@@ -966,8 +1156,16 @@ function handleRegister(e){
   const isFirst = state.users.length === 0;
   if(!isFirst && kode !== state.settings.kodeKhusus) return toast('❌ Kode khusus salah');
 
-  state.users.push({ nama, pass, wa, role: isFirst ? 'admin' : 'user', ts: Date.now() });
-  if(!state.settings.waAdmin) state.settings.waAdmin = wa;
+  const newUser = { nama, pass, wa, role: isFirst ? 'admin' : 'user', ts: Date.now() };
+  state.users.push(newUser);
+
+  // Sync ke Firebase
+  fbSet('users/' + safeKey(nama), newUser);
+
+  if(!state.settings.waAdmin){
+    state.settings.waAdmin = wa;
+    fbSet('settings/waAdmin', wa);
+  }
   saveAll();
 
   toast('✅ Pendaftaran berhasil! Silakan login.');
@@ -1034,18 +1232,25 @@ function saveRecord(e){
 
   if(!nama) return toast('⚠️ Nama barang wajib diisi');
 
+  let wasEditing = false;
   if(state.editingId){
+    wasEditing = true;
     const r = state.records.find(x => x.id === state.editingId);
     if(r){
       r.nama = nama; r.qty = qty; r.deskripsi = desc;
       if(state.pendingFoto) r.foto = state.pendingFoto;
+      // ⬇️ Sync update ke Firebase
+      fbSet('records/' + r.id, r);
       toast('✅ Catatan diperbarui');
     }
   } else {
-    state.records.unshift({
+    const rec = {
       id: uid(), ts: Date.now(), nama, qty, deskripsi: desc,
       foto: state.pendingFoto || '', author: state.session || '-'
-    });
+    };
+    state.records.unshift(rec);
+    // ⬇️ Sync tambah ke Firebase
+    fbSet('records/' + rec.id, rec);
     toast('✅ Catatan disimpan');
   }
   saveAll();
@@ -1053,7 +1258,7 @@ function saveRecord(e){
   renderAdmin();
   renderPublic();
 
-  if(state.settings.autoWa && !state.editingId){
+  if(state.settings.autoWa && !wasEditing){
     const latest = state.records[0];
     setTimeout(() => sendWaRecord(latest), 350);
   }
@@ -1087,6 +1292,8 @@ function startEdit(r){
 function deleteRecord(r){
   if(!confirm('Hapus catatan "' + r.nama + '" tanggal ' + dateParts(r.ts).full + '?')) return;
   state.records = state.records.filter(x => x.id !== r.id);
+  // ⬇️ Sync hapus ke Firebase
+  fbRemove('records/' + r.id);
   saveAll(); renderAdmin(); renderPublic();
   toast('🗑️ Catatan dihapus');
 }
@@ -1155,7 +1362,7 @@ function buildPrintDoc(records, title, groupMode){
   let rows = '';
 
   groups.forEach(items => {
-    /* ⬇️ NOMOR MULAI DARI 1 LAGI DI SETIAP TABEL PDF */
+    /* Nomor mulai dari 1 lagi di setiap tabel PDF */
     let no = 0;
     const total = items.reduce((a,b) => a + num(b.qty), 0);
     rows += `<tr class="grp"><td colspan="9">${esc(groupLabel(items, groupMode || 'hari'))} &nbsp;•&nbsp; ${items.length} catatan &nbsp;•&nbsp; Total Qty: ${total}</td></tr>`;
@@ -1195,7 +1402,7 @@ function buildPrintDoc(records, title, groupMode){
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
-    <div class="foot">Dokumen dibuat otomatis oleh ${esc(state.settings.appName)}</div>
+    <div class="foot">© ${new Date().getFullYear()} ${esc(state.settings.appName)} — Dicetak otomatis</div>
     <script>setTimeout(function(){window.print();},500);<\/script>
   </body></html>`);
   win.document.close();
@@ -1225,6 +1432,8 @@ function renderThemeGrid(){
       state.settings.theme = key;
       state.settings.autoTheme = false;
       $('#setAutoTheme').checked = false;
+      fbSet('settings/theme', key);
+      fbSet('settings/autoTheme', false);
       saveAll(); applyTheme(); renderThemeGrid();
       toast('🎨 Tema: ' + t.label);
     };
@@ -1242,6 +1451,8 @@ function renderThemeGrid(){
     state.settings.theme = 'custom';
     state.settings.autoTheme = false;
     $('#setAutoTheme').checked = false;
+    fbSet('settings/theme', 'custom');
+    fbSet('settings/autoTheme', false);
     saveAll(); applyTheme(); renderThemeGrid();
     toast('🎨 Tema Custom aktif');
   };
@@ -1307,7 +1518,10 @@ function saveSettings(){
   renderThemeGrid();
   renderPublic();
   renderAdmin();
-  toast('💾 Pengaturan tersimpan');
+
+  // ⬇️ Sync pengaturan ke Firebase
+  fbSet('settings', s);
+  toast('💾 Pengaturan tersimpan & tersinkron');
 }
 
 function randomTheme(){
@@ -1316,6 +1530,8 @@ function randomTheme(){
   state.settings.theme = key;
   state.settings.autoTheme = false;
   $('#setAutoTheme').checked = false;
+  fbSet('settings/theme', key);
+  fbSet('settings/autoTheme', false);
   saveAll(); applyTheme(); renderThemeGrid();
   toast('🎲 Tema acak: ' + THEMES[key].label);
 }
@@ -1330,22 +1546,25 @@ function seedDemo(){
   ];
   const now = Date.now();
   barang.forEach((b, i) => {
-    state.records.unshift({
+    const rec = {
       id: uid(),
       ts: now - (i * 1000 * 60 * 37) - (i >= 3 ? 1000*60*60*26 : 0),
       nama: b[0], qty: b[1], deskripsi: b[2], foto: '', author: state.session || '-'
-    });
+    };
+    state.records.unshift(rec);
+    fbSet('records/' + rec.id, rec);
   });
   saveAll(); renderAdmin(); renderPublic();
-  toast('🧪 5 data contoh ditambahkan');
+  toast('🧪 5 data contoh ditambahkan & tersinkron');
 }
 
 function wipeRecords(){
   if(!confirm('Hapus SEMUA catatan? Tindakan ini tidak bisa dibatalkan.')) return;
   state.records = [];
   groupCache.clear();
+  fbRemove('records');   // ⬇️ hapus seluruh node di Firebase
   saveAll(); renderAdmin(); renderPublic();
-  toast('🗑️ Semua catatan dihapus');
+  toast('🗑️ Semua catatan dihapus dari lokal & Firebase');
 }
 
 /* ================= TAB ================= */
@@ -1356,26 +1575,25 @@ function switchTab(id){
 
 /* ================= INIT ================= */
 document.addEventListener('DOMContentLoaded', () => {
+  // Isi tahun otomatis di footer
+  $$('.fb-year').forEach(el => el.textContent = new Date().getFullYear());
+
   applyTheme();
   tickClock();
   setInterval(tickClock, 1000);
   setInterval(() => { if(state.settings.autoTheme) applyTheme(); }, 60000);
 
-  // Tab admin
   $$('.tab').forEach(t => t.onclick = () => switchTab(t.dataset.tab));
 
-  // Form
   $('#formLogin').addEventListener('submit', handleLogin);
   $('#formRegister').addEventListener('submit', handleRegister);
   $('#formRecord').addEventListener('submit', saveRecord);
   $('#inFoto').addEventListener('change', handleFoto);
 
-  // Pencarian & filter
   $('#pubSearch').addEventListener('input', renderPublic);
   $('#dataSearch').addEventListener('input', renderAdmin);
   $('#dataGroup').addEventListener('change', renderAdmin);
 
-  // Live preview warna custom
   ['custBg','custCard','custText','custAccent'].forEach(id => {
     $('#'+id).addEventListener('input', () => {
       readCustom();
@@ -1400,7 +1618,6 @@ document.addEventListener('DOMContentLoaded', () => {
     applyTheme(); renderThemeGrid();
   });
 
-  // Petunjuk kode khusus
   const updateHint = () => {
     if(state.users.length === 0){
       $('#regHint').innerHTML = 'Akun pertama otomatis menjadi <b>Super Admin</b> tanpa kode khusus.';
@@ -1411,7 +1628,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateHint();
   setInterval(updateHint, 3000);
 
-  // Tampilan awal
+  // Tampilan awal dari cache lokal
   renderPublic();
   if(state.session && state.users.some(u => u.nama === state.session)){
     enterAdmin();
@@ -1419,6 +1636,9 @@ document.addEventListener('DOMContentLoaded', () => {
     state.session = null;
     show('viewPublic');
   }
+
+  // Koneksi & sinkronisasi Firebase
+  bootFirebase();
 });
 </script>
 </body>
