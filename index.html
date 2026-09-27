@@ -298,7 +298,6 @@ mark{
 
     <section class="stats">
       <div class="stat card"><div class="stat-num" id="pubTotalCatatan">0</div><div class="stat-label">Total Catatan</div></div>
-      <div class="stat card"><div class="stat-num" id="pubTotalQty">0</div><div class="stat-label">Total Qty (angka)</div></div>
       <div class="stat card"><div class="stat-num" id="pubTotalHari">0</div><div class="stat-label">Jumlah Hari</div></div>
       <div class="stat card"><div class="stat-num" id="pubTotalBarang">0</div><div class="stat-label">Jenis Barang</div></div>
     </section>
@@ -316,15 +315,6 @@ mark{
           <button class="btn wa" onclick="waPublic()">💬 Kirim ke WA Admin</button>
         </div>
       </div>
-      <div class="search-info">
-        <span class="small muted">💡 Bisa cari:</span>
-        <span class="chip">senin</span>
-        <span class="chip">15 jan</span>
-        <span class="chip">15/01/2025</span>
-        <span class="chip">januari 2025</span>
-        <span class="chip">09:30</span>
-        <span class="chip">kertas a4</span>
-      </div>
       <div id="pubSearchInfo" class="search-info" style="display:none"></div>
       <p class="muted small">Setiap tabel punya tombol <b>📄 Export PDF</b> sendiri, dan nomor otomatis mulai dari <b>1</b> di setiap tanggal.</p>
       <div id="pubTables"></div>
@@ -335,7 +325,6 @@ mark{
       <div class="fb-line">Dibuat oleh a'didin · Semua Hak Dilindungi</div>
       <div class="fb-status">
         <span class="dot fb-dot"></span>
-        <span class="fb-text">Menghubungkan ke Firebase…</span>
       </div>
     </footer>
   </main>
@@ -465,14 +454,6 @@ mark{
             <button class="btn wa" onclick="waData()">💬 Kirim ke WA Admin</button>
           </div>
         </div>
-        <div class="search-info">
-          <span class="small muted">💡 Bisa cari:</span>
-          <span class="chip">senin</span>
-          <span class="chip">15 jan</span>
-          <span class="chip">15/01/2025</span>
-          <span class="chip">januari 2025</span>
-          <span class="chip">kertas a4</span>
-        </div>
         <div id="dataSearchInfo" class="search-info" style="display:none"></div>
         <p class="muted small">Setiap tabel punya tombol <b>📄 Export PDF</b> sendiri, dan nomor otomatis mulai dari <b>1</b> di setiap tabel.</p>
         <div id="admDataTables"></div>
@@ -559,7 +540,6 @@ mark{
       <div class="fb-line">Dibuat oleh a'didin · Semua Hak Dilindungi</div>
       <div class="fb-status">
         <span class="dot fb-dot"></span>
-        <span class="fb-text">Menghubungkan ke Firebase…</span>
       </div>
     </footer>
   </main>
@@ -648,15 +628,6 @@ function luminance(hex){
 
 /* ============================================================
    🔍 SMART SEARCH
-   Membangun haystack untuk setiap record:
-   - Nama barang, qty, deskripsi, author
-   - Hari (senin, selasa, ...) + singkatan (sen, sel, rab, ...)
-   - Tanggal numerik + 2 digit (5 / 05)
-   - Bulan panjang + singkatan (januari / jan)
-   - Tahun
-   - Jam HH:MM + H.MM
-   - Format tanggal lengkap: 15/01/2025, 15-01-2025, 2025-01-15
-   - "15 jan 2025", "15 januari"
    ============================================================ */
 function buildHaystack(r){
   if(!r || !r.ts) return '';
@@ -709,7 +680,6 @@ function buildHaystack(r){
     .trim();
 }
 
-/* Cek apakah record cocok dengan query (AND multi-kata) */
 function matchRecord(haystack, query){
   if(!query) return true;
   const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
@@ -717,14 +687,12 @@ function matchRecord(haystack, query){
   return terms.every(t => haystack.includes(t));
 }
 
-/* Filter list records berdasarkan query dengan smart search */
 function smartFilter(records, query){
   if(!query || !query.trim()) return records;
   const q = query.trim();
   return records.filter(r => matchRecord(buildHaystack(r), q));
 }
 
-/* Bangun highlight HTML untuk kolom teks */
 function highlight(text, query){
   const safeText = esc(text);
   if(!query || !query.trim()) return safeText;
@@ -739,7 +707,6 @@ function highlight(text, query){
   return result;
 }
 
-/* Bersihkan input pencarian + re-render */
 function clearSearch(inputId, renderer){
   const el = $('#' + inputId);
   if(!el) return;
@@ -749,7 +716,6 @@ function clearSearch(inputId, renderer){
   el.focus();
 }
 
-/* Update indikator hasil pencarian */
 function updateSearchInfo(infoId, filtered, total, query){
   const el = $('#' + infoId);
   if(!el) return;
@@ -768,7 +734,6 @@ function updateSearchInfo(infoId, filtered, total, query){
   }
 }
 
-/* Toggle class has-text pada search-wrap agar tombol ✖ muncul */
 function bindSearchInput(inputId, renderer){
   const el = $('#' + inputId);
   if(!el) return;
@@ -831,14 +796,10 @@ function safeKey(s){
 
 function updateFbStatus(status){
   fbMode = status;
-  const label = status === 'online'   ? 'Terhubung • Firebase Realtime (Live)'
-              : status === 'connecting' ? 'Menghubungkan ke Firebase…'
-              : 'Mode Offline — Data Lokal (localStorage)';
   $$('.fb-dot').forEach(d => {
     d.classList.remove('online','offline','connecting');
     d.classList.add(status);
   });
-  $$('.fb-text').forEach(t => t.textContent = label);
 }
 
 function startFirebaseListeners(){
@@ -1054,7 +1015,6 @@ function buildTables(container, records, opts = {}){
 
   groups.forEach(items => {
     let no = 1;
-    const total = items.reduce((a,b) => a + num(b.qty), 0);
     const cacheKey = `${container.id}|${mode}|${gi++}`;
     groupCache.set(cacheKey, { items: items.slice(), mode });
 
@@ -1064,7 +1024,7 @@ function buildTables(container, records, opts = {}){
       <div class="group-head">
         <span class="badge grp">${esc(groupLabel(items, mode))}</span>
         <span class="grp-actions">
-          <span class="muted small">${items.length} catatan • Total Qty: <b>${total}</b></span>
+          <span class="muted small">${items.length} catatan</span>
           <button class="btn tiny" data-exp="${esc(cacheKey)}" title="Export tabel ini saja ke PDF">📄 Export PDF</button>
           <button class="btn tiny wa" data-wagrp="${esc(cacheKey)}" title="Kirim tabel ini saja ke WhatsApp">💬 Kirim WA</button>
         </span>
@@ -1278,7 +1238,6 @@ function renderPublic(){
   const list = smartFilter(recs, q);
 
   $('#pubTotalCatatan').textContent = recs.length;
-  $('#pubTotalQty').textContent = recs.reduce((a,b) => a + num(b.qty), 0);
   $('#pubTotalHari').textContent = new Set(recs.map(r => fmtDateKey(r.ts))).size;
   $('#pubTotalBarang').textContent = new Set(recs.map(r => String(r.nama).trim().toLowerCase())).size;
 
@@ -1292,13 +1251,11 @@ function renderAdmin(){
   $('#admUser').textContent = state.session || '-';
   $('#admAppName').textContent = 'Dashboard Admin • ' + state.settings.appName;
 
-  // Tab Catatan (Catatan Terbaru) — pakai quick search
   const qQuick = ($('#admQuickSearch') ? $('#admQuickSearch').value : '').trim();
   const listQuick = smartFilter(recs, qQuick);
   updateSearchInfo('admQuickInfo', listQuick, recs.length, qQuick);
   buildTables($('#admCatatanTables'), listQuick, { foto:true, actions:true, group:'hari', query: qQuick });
 
-  // Tab Data Lengkap
   const q = ($('#dataSearch') ? $('#dataSearch').value : '').trim();
   const list = smartFilter(recs, q);
   const mode = ($('#dataGroup') ? $('#dataGroup').value : 'hari');
@@ -1573,8 +1530,7 @@ function buildPrintDoc(records, title, groupMode){
 
   groups.forEach(items => {
     let no = 0;
-    const total = items.reduce((a,b) => a + num(b.qty), 0);
-    rows += `<tr class="grp"><td colspan="9">${esc(groupLabel(items, groupMode || 'hari'))} &nbsp;•&nbsp; ${items.length} catatan &nbsp;•&nbsp; Total Qty: ${total}</td></tr>`;
+    rows += `<tr class="grp"><td colspan="9">${esc(groupLabel(items, groupMode || 'hari'))} &nbsp;•&nbsp; ${items.length} catatan</td></tr>`;
     items.forEach(r => {
       const d = dateParts(r.ts);
       rows += `<tr>
@@ -1804,7 +1760,6 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#formRecord').addEventListener('submit', saveRecord);
   $('#inFoto').addEventListener('change', handleFoto);
 
-  // 🔍 SMART SEARCH — bind ketiga input ke renderer masing-masing
   bindSearchInput('pubSearch', renderPublic);
   bindSearchInput('admQuickSearch', renderAdmin);
   bindSearchInput('dataSearch', renderAdmin);
