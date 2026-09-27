@@ -188,6 +188,54 @@ input[type=color]{width:100%;height:42px;padding:3px;border-radius:10px;border:1
 }
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 
+/* ===== SEARCH BAR ENHANCED ===== */
+.search-wrap{
+  position:relative;
+  min-width:260px;
+  flex:1 1 260px;
+  max-width:380px;
+}
+.search-wrap .inp{
+  padding-left:36px;
+  padding-right:70px;
+}
+.search-wrap .s-icon{
+  position:absolute; left:12px; top:50%; transform:translateY(-50%);
+  font-size:1em; opacity:.6; pointer-events:none;
+}
+.search-wrap .s-clear{
+  position:absolute; right:8px; top:50%; transform:translateY(-50%);
+  border:none; background:rgba(127,127,127,.18); color:var(--text);
+  width:26px; height:26px; border-radius:50%; cursor:pointer;
+  font-size:.85em; display:none; place-items:center;
+  font-family:inherit;
+}
+.search-wrap.has-text .s-clear{ display:grid; }
+.search-info{
+  display:flex; flex-wrap:wrap; gap:8px; align-items:center;
+  margin:-4px 0 12px;
+  font-size:.85em;
+  color:var(--muted);
+}
+.chip{
+  display:inline-flex; align-items:center; gap:5px;
+  background:color-mix(in srgb,var(--accent) 18%,transparent);
+  color:var(--accent);
+  padding:3px 10px; border-radius:999px;
+  font-size:.85em; font-weight:600;
+}
+.chip.muted{
+  background:rgba(127,127,127,.15);
+  color:var(--muted);
+}
+/* Highlight hasil pencarian */
+mark{
+  background:color-mix(in srgb,var(--accent) 55%,transparent);
+  color:var(--accentText);
+  padding:0 3px; border-radius:4px;
+  font-weight:700;
+}
+
 /* ===== PENAMPIL FOTO: ZOOM, PAN, DOWNLOAD ===== */
 .modal{ display:none; position:fixed; inset:0; z-index:150; background:rgba(0,0,0,.92); padding:14px; }
 .modal.show{ display:grid; place-items:center; }
@@ -259,11 +307,25 @@ input[type=color]{width:100%;height:42px;padding:3px;border-radius:10px;border:1
       <div class="row between">
         <h2>📊 Tabel Data Catatan</h2>
         <div class="row gap">
-          <input id="pubSearch" class="inp" style="width:230px" placeholder="🔍 Cari barang / deskripsi...">
+          <div class="search-wrap">
+            <span class="s-icon">🔍</span>
+            <input id="pubSearch" class="inp" placeholder="Cari hari, tanggal, nama barang...">
+            <button type="button" class="s-clear" onclick="clearSearch('pubSearch', renderPublic)" title="Bersihkan pencarian">✖</button>
+          </div>
           <button class="btn" onclick="exportPublic()">📄 Export Semua PDF</button>
           <button class="btn wa" onclick="waPublic()">💬 Kirim ke WA Admin</button>
         </div>
       </div>
+      <div class="search-info">
+        <span class="small muted">💡 Bisa cari:</span>
+        <span class="chip">senin</span>
+        <span class="chip">15 jan</span>
+        <span class="chip">15/01/2025</span>
+        <span class="chip">januari 2025</span>
+        <span class="chip">09:30</span>
+        <span class="chip">kertas a4</span>
+      </div>
+      <div id="pubSearchInfo" class="search-info" style="display:none"></div>
       <p class="muted small">Setiap tabel punya tombol <b>📄 Export PDF</b> sendiri, dan nomor otomatis mulai dari <b>1</b> di setiap tanggal.</p>
       <div id="pubTables"></div>
     </section>
@@ -369,10 +431,16 @@ input[type=color]{width:100%;height:42px;padding:3px;border-radius:10px;border:1
         <div class="row between">
           <h2>🗂️ Catatan Terbaru</h2>
           <div class="row gap">
+            <div class="search-wrap">
+              <span class="s-icon">🔍</span>
+              <input id="admQuickSearch" class="inp" placeholder="Cari hari, tanggal, nama barang...">
+              <button type="button" class="s-clear" onclick="clearSearch('admQuickSearch', renderAdmin)" title="Bersihkan">✖</button>
+            </div>
             <button class="btn" onclick="exportAll()">📄 Export Semua PDF</button>
             <button class="btn wa" onclick="waPublic()">💬 Kirim ke WA Admin</button>
           </div>
         </div>
+        <div id="admQuickInfo" class="search-info" style="display:none"></div>
         <div id="admCatatanTables"></div>
       </div>
     </section>
@@ -383,7 +451,11 @@ input[type=color]{width:100%;height:42px;padding:3px;border-radius:10px;border:1
         <div class="row between">
           <h2>📊 Tabel Data Lengkap</h2>
           <div class="row gap">
-            <input id="dataSearch" class="inp" style="width:210px" placeholder="🔍 Cari...">
+            <div class="search-wrap">
+              <span class="s-icon">🔍</span>
+              <input id="dataSearch" class="inp" placeholder="Cari hari, tanggal, nama barang...">
+              <button type="button" class="s-clear" onclick="clearSearch('dataSearch', renderAdmin)" title="Bersihkan">✖</button>
+            </div>
             <select id="dataGroup" class="inp" style="width:auto">
               <option value="hari">Pisah per Tanggal</option>
               <option value="jam">Pisah per Jam</option>
@@ -393,6 +465,15 @@ input[type=color]{width:100%;height:42px;padding:3px;border-radius:10px;border:1
             <button class="btn wa" onclick="waData()">💬 Kirim ke WA Admin</button>
           </div>
         </div>
+        <div class="search-info">
+          <span class="small muted">💡 Bisa cari:</span>
+          <span class="chip">senin</span>
+          <span class="chip">15 jan</span>
+          <span class="chip">15/01/2025</span>
+          <span class="chip">januari 2025</span>
+          <span class="chip">kertas a4</span>
+        </div>
+        <div id="dataSearchInfo" class="search-info" style="display:none"></div>
         <p class="muted small">Setiap tabel punya tombol <b>📄 Export PDF</b> sendiri, dan nomor otomatis mulai dari <b>1</b> di setiap tabel.</p>
         <div id="admDataTables"></div>
       </div>
@@ -475,7 +556,7 @@ input[type=color]{width:100%;height:42px;padding:3px;border-radius:10px;border:1
 
     <footer class="footer">
       <div class="fb-brand">© <span class="fb-year"></span> Catatan Barang &amp; Kegiatan</div>
-      <div class="fb-line">Dibuat dengan ❤️ · Semua Hak Dilindungi</div>
+      <div class="fb-line">Dibuat oleh a'didin · Semua Hak Dilindungi</div>
       <div class="fb-status">
         <span class="dot fb-dot"></span>
         <span class="fb-text">Menghubungkan ke Firebase…</span>
@@ -514,6 +595,7 @@ const $  = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const HARI  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const BULAN_SHORT = ['jan','feb','mar','apr','mei','jun','jul','agu','ags','sep','okt','nov','des'];
 
 const KEY = { users:'catatan_users_v1', records:'catatan_records_v1', settings:'catatan_settings_v1', session:'catatan_session' };
 
@@ -564,6 +646,141 @@ function luminance(hex){
   return 0.2126*r + 0.7152*g + 0.0722*b;
 }
 
+/* ============================================================
+   🔍 SMART SEARCH
+   Membangun haystack untuk setiap record:
+   - Nama barang, qty, deskripsi, author
+   - Hari (senin, selasa, ...) + singkatan (sen, sel, rab, ...)
+   - Tanggal numerik + 2 digit (5 / 05)
+   - Bulan panjang + singkatan (januari / jan)
+   - Tahun
+   - Jam HH:MM + H.MM
+   - Format tanggal lengkap: 15/01/2025, 15-01-2025, 2025-01-15
+   - "15 jan 2025", "15 januari"
+   ============================================================ */
+function buildHaystack(r){
+  if(!r || !r.ts) return '';
+  const d = new Date(r.ts);
+  const hari = HARI[d.getDay()];
+  const hariShort = hari.slice(0,3);
+  const tgl = d.getDate();
+  const bln = d.getMonth();
+  const bulan = BULAN[bln];
+  const bulanShort = BULAN_SHORT[bln];
+  const thn = d.getFullYear();
+  const jam = d.getHours();
+  const menit = d.getMinutes();
+  const jamStr = pad(jam) + ':' + pad(menit);
+  const jamStr2 = jam + ':' + pad(menit);
+
+  const tanggalVariants = [
+    String(tgl),
+    pad(tgl),
+    `${tgl}/${pad(bln+1)}/${thn}`,
+    `${pad(tgl)}/${pad(bln+1)}/${thn}`,
+    `${tgl}-${pad(bln+1)}-${thn}`,
+    `${pad(tgl)}-${pad(bln+1)}-${thn}`,
+    `${thn}-${pad(bln+1)}-${pad(tgl)}`,
+    `${tgl} ${bulan} ${thn}`,
+    `${tgl} ${bulanShort} ${thn}`,
+    `${tgl} ${bulan}`,
+    `${tgl} ${bulanShort}`,
+    `${bulan} ${thn}`,
+    `${bulanShort} ${thn}`,
+    `${bulan}`,
+    `${bulanShort}`,
+    `${thn}`,
+    hari,
+    hariShort
+  ];
+
+  const parts = [
+    r.nama || '',
+    r.qty || '',
+    r.deskripsi || '',
+    r.author || '',
+    jamStr,
+    jamStr2,
+    ...tanggalVariants
+  ];
+
+  return parts.join(' ').toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/* Cek apakah record cocok dengan query (AND multi-kata) */
+function matchRecord(haystack, query){
+  if(!query) return true;
+  const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+  if(!terms.length) return true;
+  return terms.every(t => haystack.includes(t));
+}
+
+/* Filter list records berdasarkan query dengan smart search */
+function smartFilter(records, query){
+  if(!query || !query.trim()) return records;
+  const q = query.trim();
+  return records.filter(r => matchRecord(buildHaystack(r), q));
+}
+
+/* Bangun highlight HTML untuk kolom teks */
+function highlight(text, query){
+  const safeText = esc(text);
+  if(!query || !query.trim()) return safeText;
+  const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if(!terms.length) return safeText;
+  let result = safeText;
+  terms.forEach(t => {
+    if(!t) return;
+    const re = new RegExp('(' + t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
+    result = result.replace(re, '<mark>$1</mark>');
+  });
+  return result;
+}
+
+/* Bersihkan input pencarian + re-render */
+function clearSearch(inputId, renderer){
+  const el = $('#' + inputId);
+  if(!el) return;
+  el.value = '';
+  el.closest('.search-wrap')?.classList.remove('has-text');
+  renderer();
+  el.focus();
+}
+
+/* Update indikator hasil pencarian */
+function updateSearchInfo(infoId, filtered, total, query){
+  const el = $('#' + infoId);
+  if(!el) return;
+  if(!query || !query.trim()){
+    el.style.display = 'none';
+    el.innerHTML = '';
+    return;
+  }
+  el.style.display = 'flex';
+  const n = filtered.length;
+  if(n === 0){
+    el.innerHTML = `<span class="chip muted">🔎 Tidak ada hasil untuk "<b>${esc(query)}</b>"</span>`;
+  } else {
+    el.innerHTML = `<span class="chip">🔎 ${n} dari ${total} catatan cocok dengan "<b>${esc(query)}</b>"</span>
+                    <button class="btn tiny ghost" onclick="clearSearch('${infoId === 'pubSearchInfo' ? 'pubSearch' : infoId === 'admQuickInfo' ? 'admQuickSearch' : 'dataSearch'}', ${infoId === 'pubSearchInfo' ? 'renderPublic' : 'renderAdmin'})">✖ Hapus filter</button>`;
+  }
+}
+
+/* Toggle class has-text pada search-wrap agar tombol ✖ muncul */
+function bindSearchInput(inputId, renderer){
+  const el = $('#' + inputId);
+  if(!el) return;
+  const wrap = el.closest('.search-wrap');
+  const update = () => {
+    if(wrap) wrap.classList.toggle('has-text', !!el.value);
+    renderer();
+  };
+  el.addEventListener('input', update);
+  if(el.value && wrap) wrap.classList.add('has-text');
+}
+
 /* ================= FIREBASE INIT ================= */
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyDPYk9RxqGVOZJ0o6tzifga_K3q9rgWDhY",
@@ -578,7 +795,7 @@ const FIREBASE_CONFIG = {
 
 let fbDb = null;
 let fbReady = false;
-let fbMode = 'offline'; // connecting | online | offline
+let fbMode = 'offline';
 
 (function initFirebase(){
   try{
@@ -600,7 +817,6 @@ let fbMode = 'offline'; // connecting | online | offline
   }
 })();
 
-/* ============ Helper wrapper Firebase ============ */
 function fbSet(path, val){
   if(!fbReady) return Promise.resolve(false);
   return fbDb.ref(path).set(val).then(()=>true).catch(e=>{ console.warn('FB set err:',path,e); return false; });
@@ -613,7 +829,6 @@ function safeKey(s){
   return String(s||'').toLowerCase().trim().replace(/[.#$\[\]\/\s]+/g,'_').slice(0,80) || 'user';
 }
 
-/* ============ Update indikator status ============ */
 function updateFbStatus(status){
   fbMode = status;
   const label = status === 'online'   ? 'Terhubung • Firebase Realtime (Live)'
@@ -626,11 +841,9 @@ function updateFbStatus(status){
   $$('.fb-text').forEach(t => t.textContent = label);
 }
 
-/* ============ Listener Realtime ============ */
 function startFirebaseListeners(){
   if(!fbReady) return;
 
-  /* Records realtime */
   fbDb.ref('records').on('value', snap => {
     const data = snap.val();
     state.records = data && typeof data === 'object'
@@ -644,7 +857,6 @@ function startFirebaseListeners(){
     updateFbStatus('offline');
   });
 
-  /* Users realtime */
   fbDb.ref('users').on('value', snap => {
     const data = snap.val() || {};
     state.users = Object.values(data).filter(u => u && u.nama);
@@ -652,7 +864,6 @@ function startFirebaseListeners(){
     if($('#viewAdmin').classList.contains('active')) renderUsers();
   }, err => console.warn('FB read users error:', err));
 
-  /* Settings realtime */
   fbDb.ref('settings').on('value', snap => {
     const val = snap.val();
     if(val && typeof val === 'object'){
@@ -664,13 +875,11 @@ function startFirebaseListeners(){
     }
   }, err => console.warn('FB read settings error:', err));
 
-  /* Status koneksi live */
   fbDb.ref('.info/connected').on('value', snap => {
     updateFbStatus(snap.val() ? 'online' : 'offline');
   });
 }
 
-/* ============ Sinkronisasi awal (seed dari lokal ke FB jika kosong) ============ */
 async function bootFirebase(){
   if(!fbReady){ updateFbStatus('offline'); return; }
   updateFbStatus('connecting');
@@ -834,19 +1043,18 @@ const groupCache = new Map();
 /* ================= RENDER TABEL ================= */
 function buildTables(container, records, opts = {}){
   const mode = opts.group || 'hari';
+  const q = opts.query || '';
   container.innerHTML = '';
   if(!records || !records.length){
-    container.innerHTML = '<div class="empty">📭 Belum ada catatan untuk ditampilkan.</div>';
+    container.innerHTML = `<div class="empty">📭 ${ q ? 'Tidak ada catatan yang cocok dengan pencarian.' : 'Belum ada catatan untuk ditampilkan.' }</div>`;
     return;
   }
   const groups = groupRecords(records, mode);
   let gi = 0;
 
   groups.forEach(items => {
-    /* Nomor mulai dari 1 lagi di setiap tabel baru */
     let no = 1;
     const total = items.reduce((a,b) => a + num(b.qty), 0);
-
     const cacheKey = `${container.id}|${mode}|${gi++}`;
     groupCache.set(cacheKey, { items: items.slice(), mode });
 
@@ -884,9 +1092,9 @@ function buildTables(container, records, opts = {}){
         <td>${d.tanggal}</td>
         <td>${d.bulan}</td>
         <td>${d.tahun}</td>
-        <td><b>${esc(r.nama)}</b></td>
-        <td><span class="qty">${esc(r.qty)}</span></td>
-        <td class="desc">${esc(r.deskripsi) || '<span class="muted">-</span>'}</td>`;
+        <td><b>${highlight(r.nama, q)}</b></td>
+        <td><span class="qty">${highlight(r.qty, q)}</span></td>
+        <td class="desc">${r.deskripsi ? highlight(r.deskripsi, q) : '<span class="muted">-</span>'}</td>`;
       if(opts.foto){
         html += `<td>${ r.foto
           ? `<img class="thumb" src="${r.foto}" data-foto="${r.id}" alt="foto">`
@@ -1066,16 +1274,16 @@ function renderPublic(){
   const recs = state.records;
   $('#pubAppName').textContent = state.settings.appName;
 
-  const q = ($('#pubSearch') ? $('#pubSearch').value : '').trim().toLowerCase();
-  let list = recs;
-  if(q) list = recs.filter(r => (r.nama + ' ' + r.qty + ' ' + (r.deskripsi||'')).toLowerCase().includes(q));
+  const q = ($('#pubSearch') ? $('#pubSearch').value : '').trim();
+  const list = smartFilter(recs, q);
 
   $('#pubTotalCatatan').textContent = recs.length;
   $('#pubTotalQty').textContent = recs.reduce((a,b) => a + num(b.qty), 0);
   $('#pubTotalHari').textContent = new Set(recs.map(r => fmtDateKey(r.ts))).size;
   $('#pubTotalBarang').textContent = new Set(recs.map(r => String(r.nama).trim().toLowerCase())).size;
 
-  buildTables($('#pubTables'), list, { foto:true, actions:false, group:'hari' });
+  updateSearchInfo('pubSearchInfo', list, recs.length, q);
+  buildTables($('#pubTables'), list, { foto:true, actions:false, group:'hari', query: q });
 }
 
 /* ================= DASHBOARD ADMIN ================= */
@@ -1084,13 +1292,18 @@ function renderAdmin(){
   $('#admUser').textContent = state.session || '-';
   $('#admAppName').textContent = 'Dashboard Admin • ' + state.settings.appName;
 
-  buildTables($('#admCatatanTables'), recs, { foto:true, actions:true, group:'hari' });
+  // Tab Catatan (Catatan Terbaru) — pakai quick search
+  const qQuick = ($('#admQuickSearch') ? $('#admQuickSearch').value : '').trim();
+  const listQuick = smartFilter(recs, qQuick);
+  updateSearchInfo('admQuickInfo', listQuick, recs.length, qQuick);
+  buildTables($('#admCatatanTables'), listQuick, { foto:true, actions:true, group:'hari', query: qQuick });
 
-  const q = ($('#dataSearch') ? $('#dataSearch').value : '').trim().toLowerCase();
-  let list = recs;
-  if(q) list = recs.filter(r => (r.nama + ' ' + r.qty + ' ' + (r.deskripsi||'') + ' ' + (r.author||'')).toLowerCase().includes(q));
+  // Tab Data Lengkap
+  const q = ($('#dataSearch') ? $('#dataSearch').value : '').trim();
+  const list = smartFilter(recs, q);
   const mode = ($('#dataGroup') ? $('#dataGroup').value : 'hari');
-  buildTables($('#admDataTables'), list, { foto:true, actions:false, group:mode });
+  updateSearchInfo('dataSearchInfo', list, recs.length, q);
+  buildTables($('#admDataTables'), list, { foto:true, actions:false, group:mode, query: q });
 
   renderUsers();
 }
@@ -1119,7 +1332,6 @@ function renderUsers(){
       const nm = b.dataset.del;
       if(!confirm('Hapus pengguna "' + nm + '"?')) return;
       state.users = state.users.filter(u => u.nama !== nm);
-      // Sync hapus ke Firebase
       fbRemove('users/' + safeKey(nm));
       saveAll(); renderUsers(); toast('🗑️ Pengguna dihapus');
     };
@@ -1158,8 +1370,6 @@ function handleRegister(e){
 
   const newUser = { nama, pass, wa, role: isFirst ? 'admin' : 'user', ts: Date.now() };
   state.users.push(newUser);
-
-  // Sync ke Firebase
   fbSet('users/' + safeKey(nama), newUser);
 
   if(!state.settings.waAdmin){
@@ -1239,7 +1449,6 @@ function saveRecord(e){
     if(r){
       r.nama = nama; r.qty = qty; r.deskripsi = desc;
       if(state.pendingFoto) r.foto = state.pendingFoto;
-      // ⬇️ Sync update ke Firebase
       fbSet('records/' + r.id, r);
       toast('✅ Catatan diperbarui');
     }
@@ -1249,7 +1458,6 @@ function saveRecord(e){
       foto: state.pendingFoto || '', author: state.session || '-'
     };
     state.records.unshift(rec);
-    // ⬇️ Sync tambah ke Firebase
     fbSet('records/' + rec.id, rec);
     toast('✅ Catatan disimpan');
   }
@@ -1292,7 +1500,6 @@ function startEdit(r){
 function deleteRecord(r){
   if(!confirm('Hapus catatan "' + r.nama + '" tanggal ' + dateParts(r.ts).full + '?')) return;
   state.records = state.records.filter(x => x.id !== r.id);
-  // ⬇️ Sync hapus ke Firebase
   fbRemove('records/' + r.id);
   saveAll(); renderAdmin(); renderPublic();
   toast('🗑️ Catatan dihapus');
@@ -1348,12 +1555,15 @@ function sendWaRecord(r){
   msg += `\nDikirim oleh: ${state.session || 'Pengunjung'}\n${new Date().toLocaleString('id-ID')}`;
   window.open(waLink(no, msg), '_blank');
 }
-function waPublic(){ sendWa(state.records, 'Laporan Data Catatan'); }
+function waPublic(){
+  const q = ($('#pubSearch') ? $('#pubSearch').value : '').trim();
+  const list = smartFilter(state.records, q);
+  sendWa(list, q ? `Laporan Data Catatan (filter: "${q}")` : 'Laporan Data Catatan');
+}
 function waData(){
-  const q = ($('#dataSearch').value || '').trim().toLowerCase();
-  let list = state.records;
-  if(q) list = list.filter(r => (r.nama + ' ' + r.qty + ' ' + (r.deskripsi||'')).toLowerCase().includes(q));
-  sendWa(list, 'Laporan Data Catatan (terfilter)');
+  const q = ($('#dataSearch').value || '').trim();
+  const list = smartFilter(state.records, q);
+  sendWa(list, q ? `Laporan Data Catatan (filter: "${q}")` : 'Laporan Data Catatan');
 }
 
 /* ================= EXPORT PDF ================= */
@@ -1362,7 +1572,6 @@ function buildPrintDoc(records, title, groupMode){
   let rows = '';
 
   groups.forEach(items => {
-    /* Nomor mulai dari 1 lagi di setiap tabel PDF */
     let no = 0;
     const total = items.reduce((a,b) => a + num(b.qty), 0);
     rows += `<tr class="grp"><td colspan="9">${esc(groupLabel(items, groupMode || 'hari'))} &nbsp;•&nbsp; ${items.length} catatan &nbsp;•&nbsp; Total Qty: ${total}</td></tr>`;
@@ -1407,13 +1616,20 @@ function buildPrintDoc(records, title, groupMode){
   </body></html>`);
   win.document.close();
 }
-function exportPublic(){ buildPrintDoc(state.records, 'Laporan Data Catatan', 'hari'); }
-function exportAll(){ buildPrintDoc(state.records, 'Laporan Seluruh Catatan', 'hari'); }
+function exportPublic(){
+  const q = ($('#pubSearch') ? $('#pubSearch').value : '').trim();
+  const list = smartFilter(state.records, q);
+  buildPrintDoc(list, q ? `Laporan Data Catatan (filter: "${q}")` : 'Laporan Data Catatan', 'hari');
+}
+function exportAll(){
+  const q = ($('#admQuickSearch') ? $('#admQuickSearch').value : '').trim();
+  const list = smartFilter(state.records, q);
+  buildPrintDoc(list, q ? `Laporan Seluruh Catatan (filter: "${q}")` : 'Laporan Seluruh Catatan', 'hari');
+}
 function exportData(){
-  const q = ($('#dataSearch').value || '').trim().toLowerCase();
-  let list = state.records;
-  if(q) list = list.filter(r => (r.nama + ' ' + r.qty + ' ' + (r.deskripsi||'')).toLowerCase().includes(q));
-  buildPrintDoc(list, 'Laporan Data Catatan (terfilter)', $('#dataGroup').value);
+  const q = ($('#dataSearch').value || '').trim();
+  const list = smartFilter(state.records, q);
+  buildPrintDoc(list, q ? `Laporan Data Catatan (filter: "${q}")` : 'Laporan Data Catatan', $('#dataGroup').value);
 }
 
 /* ================= PENGATURAN ================= */
@@ -1519,7 +1735,6 @@ function saveSettings(){
   renderPublic();
   renderAdmin();
 
-  // ⬇️ Sync pengaturan ke Firebase
   fbSet('settings', s);
   toast('💾 Pengaturan tersimpan & tersinkron');
 }
@@ -1562,7 +1777,7 @@ function wipeRecords(){
   if(!confirm('Hapus SEMUA catatan? Tindakan ini tidak bisa dibatalkan.')) return;
   state.records = [];
   groupCache.clear();
-  fbRemove('records');   // ⬇️ hapus seluruh node di Firebase
+  fbRemove('records');
   saveAll(); renderAdmin(); renderPublic();
   toast('🗑️ Semua catatan dihapus dari lokal & Firebase');
 }
@@ -1575,7 +1790,6 @@ function switchTab(id){
 
 /* ================= INIT ================= */
 document.addEventListener('DOMContentLoaded', () => {
-  // Isi tahun otomatis di footer
   $$('.fb-year').forEach(el => el.textContent = new Date().getFullYear());
 
   applyTheme();
@@ -1590,8 +1804,10 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#formRecord').addEventListener('submit', saveRecord);
   $('#inFoto').addEventListener('change', handleFoto);
 
-  $('#pubSearch').addEventListener('input', renderPublic);
-  $('#dataSearch').addEventListener('input', renderAdmin);
+  // 🔍 SMART SEARCH — bind ketiga input ke renderer masing-masing
+  bindSearchInput('pubSearch', renderPublic);
+  bindSearchInput('admQuickSearch', renderAdmin);
+  bindSearchInput('dataSearch', renderAdmin);
   $('#dataGroup').addEventListener('change', renderAdmin);
 
   ['custBg','custCard','custText','custAccent'].forEach(id => {
@@ -1628,7 +1844,6 @@ document.addEventListener('DOMContentLoaded', () => {
   updateHint();
   setInterval(updateHint, 3000);
 
-  // Tampilan awal dari cache lokal
   renderPublic();
   if(state.session && state.users.some(u => u.nama === state.session)){
     enterAdmin();
@@ -1637,7 +1852,6 @@ document.addEventListener('DOMContentLoaded', () => {
     show('viewPublic');
   }
 
-  // Koneksi & sinkronisasi Firebase
   bootFirebase();
 });
 </script>
