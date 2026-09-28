@@ -99,6 +99,13 @@ textarea.inp{resize:vertical}
   border:1px solid var(--border);transition:.15s;
 }
 .thumb:hover{transform:scale(1.12)}
+.video-thumb{
+  width:52px;height:52px;display:grid;place-items:center;cursor:pointer;
+  border-radius:8px;border:1px solid var(--border);
+  background:linear-gradient(135deg,#1a233a,#0f1626);
+  font-size:1.4rem;transition:.15s;
+}
+.video-thumb:hover{transform:scale(1.12);filter:brightness(1.15)}
 .acts{white-space:nowrap}
 .empty{padding:34px;text-align:center;color:var(--muted)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
@@ -228,7 +235,6 @@ input[type=color]{width:100%;height:42px;padding:3px;border-radius:10px;border:1
   background:rgba(127,127,127,.15);
   color:var(--muted);
 }
-/* Highlight hasil pencarian */
 mark{
   background:color-mix(in srgb,var(--accent) 55%,transparent);
   color:var(--accentText);
@@ -236,7 +242,7 @@ mark{
   font-weight:700;
 }
 
-/* ===== PENAMPIL FOTO: ZOOM, PAN, DOWNLOAD ===== */
+/* ===== PENAMPIL MEDIA: FOTO (ZOOM/PAN) & VIDEO ===== */
 .modal{ display:none; position:fixed; inset:0; z-index:150; background:rgba(0,0,0,.92); padding:14px; }
 .modal.show{ display:grid; place-items:center; }
 .modal-foto-wrap{
@@ -270,6 +276,11 @@ mark{
   transform-origin:center center;
   transition:transform .1s ease-out;
   will-change:transform;
+}
+.modal-foto-body video{
+  max-width:100%; max-height:100%;
+  border-radius:10px; background:#000;
+  outline:none; cursor:default;
 }
 @media(max-width:560px){
   .modal-foto-toolbar .btn{ padding:7px 10px; font-size:.82em; }
@@ -404,10 +415,14 @@ mark{
           <label class="full">Deskripsi / Catatan
             <textarea id="inDesc" class="inp" rows="3" placeholder="Keterangan tambahan..."></textarea>
           </label>
-          <label class="full">Upload Foto
+          <label class="full">Upload Foto (opsional)
             <input id="inFoto" type="file" accept="image/*" class="inp">
           </label>
           <div class="full" id="fotoPreview"></div>
+          <label class="full">Upload Video (opsional, maks 8 MB)
+            <input id="inVideo" type="file" accept="video/*" class="inp">
+          </label>
+          <div class="full" id="videoPreview"></div>
           <div class="full row gap">
             <button class="btn primary" type="submit">💾 Simpan</button>
             <button class="btn ghost" type="button" onclick="resetForm()">↺ Reset Form</button>
@@ -548,19 +563,22 @@ mark{
 <button class="fab" title="Kirim ringkasan ke WhatsApp Admin" onclick="waPublic()">💬</button>
 <div id="toast"></div>
 
-<!-- ===== MODAL FOTO DENGAN ZOOM, PAN & DOWNLOAD ===== -->
+<!-- ===== MODAL MEDIA (FOTO: ZOOM/PAN & VIDEO: PLAYER) ===== -->
 <div id="modalFoto" class="modal">
   <div class="modal-foto-wrap">
     <div class="modal-foto-toolbar">
-      <button type="button" class="btn tiny" onclick="zoomFoto(-0.25)" title="Perkecil">➖ Perkecil</button>
-      <span id="zoomLevel" class="badge small">100%</span>
-      <button type="button" class="btn tiny" onclick="zoomFoto(0.25)" title="Perbesar">➕ Perbesar</button>
-      <button type="button" class="btn tiny" onclick="resetZoom()" title="Reset ukuran">↺ Reset</button>
-      <button type="button" class="btn tiny wa" onclick="downloadFoto()" title="Unduh gambar">⬇️ Download</button>
+      <span id="zoomControls" style="display:contents">
+        <button type="button" class="btn tiny" onclick="zoomFoto(-0.25)" title="Perkecil">➖ Perkecil</button>
+        <span id="zoomLevel" class="badge small">100%</span>
+        <button type="button" class="btn tiny" onclick="zoomFoto(0.25)" title="Perbesar">➕ Perbesar</button>
+        <button type="button" class="btn tiny" onclick="resetZoom()" title="Reset ukuran">↺ Reset</button>
+      </span>
+      <button type="button" class="btn tiny wa" onclick="downloadMedia()" title="Unduh file">⬇️ Download</button>
       <button type="button" class="btn tiny danger" onclick="closeModalFoto()" title="Tutup">✖ Tutup</button>
     </div>
     <div class="modal-foto-body" id="modalFotoBody">
       <img id="modalImg" src="" alt="Foto catatan">
+      <video id="modalVideo" src="" controls playsinline preload="metadata" style="display:none;"></video>
     </div>
   </div>
 </div>
@@ -591,7 +609,7 @@ function toast(msg){
 function loadLS(k, def){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; }catch(e){ return def; } }
 function saveLS(k, v){
   try{ localStorage.setItem(k, JSON.stringify(v)); return true; }
-  catch(e){ toast('⚠️ Penyimpanan penuh — kurangi ukuran foto.'); return false; }
+  catch(e){ toast('⚠️ Penyimpanan penuh — kurangi ukuran foto/video.'); return false; }
 }
 
 function fmtDateKey(ts){ const d = new Date(ts); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
@@ -912,7 +930,8 @@ const state = {
   settings: Object.assign({}, DEFAULT_SETTINGS, loadLS(KEY.settings, {})),
   session: sessionStorage.getItem(KEY.session) || null,
   editingId: null,
-  pendingFoto: ''
+  pendingFoto: '',
+  pendingVideo: ''
 };
 state.settings.custom = Object.assign({}, DEFAULT_SETTINGS.custom, state.settings.custom || {});
 
@@ -1034,7 +1053,7 @@ function buildTables(container, records, opts = {}){
           <thead><tr>
             <th>No</th><th>Jam</th><th>Hari</th><th>Tanggal</th><th>Bulan</th><th>Tahun</th>
             <th>Nama Barang</th><th>Total/Qty</th><th>Deskripsi</th>
-            ${opts.foto ? '<th>Foto</th>' : ''}
+            ${opts.foto ? '<th>Foto</th><th>Video</th>' : ''}
             ${opts.actions ? '<th>Aksi</th>' : ''}
           </tr></thead>
           <tbody></tbody>
@@ -1059,6 +1078,9 @@ function buildTables(container, records, opts = {}){
         html += `<td>${ r.foto
           ? `<img class="thumb" src="${r.foto}" data-foto="${r.id}" alt="foto">`
           : '<span class="muted">-</span>' }</td>`;
+        html += `<td>${ r.video
+          ? `<div class="video-thumb" data-video="${r.id}" title="Putar video">🎬</div>`
+          : '<span class="muted">-</span>' }</td>`;
       }
       if(opts.actions){
         html += `<td class="acts">
@@ -1075,6 +1097,9 @@ function buildTables(container, records, opts = {}){
 
   container.querySelectorAll('[data-foto]').forEach(img => {
     img.onclick = () => openFoto(img.dataset.foto);
+  });
+  container.querySelectorAll('[data-video]').forEach(el => {
+    el.onclick = () => openVideo(el.dataset.video);
   });
   container.querySelectorAll('[data-act]').forEach(btn => {
     btn.onclick = () => {
@@ -1107,8 +1132,8 @@ function waGroup(cacheKey){
   sendWa(g.items, 'Laporan Tabel: ' + label);
 }
 
-/* ================= PENAMPIL FOTO ================= */
-const fotoState = { scale: 1, tx: 0, ty: 0, id: null };
+/* ================= PENAMPIL FOTO & VIDEO ================= */
+const fotoState = { scale: 1, tx: 0, ty: 0, id: null, type: null };
 
 function applyFotoTransform(){
   const img = $('#modalImg');
@@ -1120,6 +1145,7 @@ function applyFotoTransform(){
   if(body) body.style.cursor = fotoState.scale > 1 ? 'grab' : 'default';
 }
 function zoomFoto(delta){
+  if(fotoState.type !== 'foto') return;
   fotoState.scale = Math.min(6, Math.max(0.2, +(fotoState.scale + delta).toFixed(2)));
   if(fotoState.scale <= 1){ fotoState.tx = 0; fotoState.ty = 0; }
   applyFotoTransform();
@@ -1128,41 +1154,100 @@ function resetZoom(){
   fotoState.scale = 1; fotoState.tx = 0; fotoState.ty = 0;
   applyFotoTransform();
 }
+
+function showZoomControls(show){
+  const el = $('#zoomControls');
+  if(el) el.style.display = show ? 'contents' : 'none';
+}
+
 function openFoto(id){
   const r = state.records.find(x => x.id === id);
   if(!r || !r.foto) return;
   fotoState.id = id;
+  fotoState.type = 'foto';
   fotoState.scale = 1; fotoState.tx = 0; fotoState.ty = 0;
-  $('#modalImg').src = r.foto;
+
+  const img = $('#modalImg');
+  const vid = $('#modalVideo');
+  // reset video
+  try{ vid.pause(); }catch(_){}
+  vid.removeAttribute('src');
+  vid.style.display = 'none';
+  // show img
+  img.style.display = 'block';
+  img.src = r.foto;
+
+  showZoomControls(true);
   $('#modalFoto').classList.add('show');
   applyFotoTransform();
 }
+
+function openVideo(id){
+  const r = state.records.find(x => x.id === id);
+  if(!r || !r.video) return;
+  fotoState.id = id;
+  fotoState.type = 'video';
+  fotoState.scale = 1; fotoState.tx = 0; fotoState.ty = 0;
+
+  const img = $('#modalImg');
+  const vid = $('#modalVideo');
+  // reset img
+  img.style.transform = '';
+  img.removeAttribute('src');
+  img.style.display = 'none';
+  // show video
+  vid.style.display = 'block';
+  vid.src = r.video;
+
+  showZoomControls(false);
+  $('#modalFoto').classList.add('show');
+}
+
 function closeModalFoto(){
   $('#modalFoto').classList.remove('show');
-  $('#modalImg').removeAttribute('src');
+  const img = $('#modalImg');
+  const vid = $('#modalVideo');
+  img.removeAttribute('src');
+  try{ vid.pause(); }catch(_){}
+  vid.removeAttribute('src');
   fotoState.id = null;
+  fotoState.type = null;
   resetZoom();
 }
-function downloadFoto(){
-  const img = $('#modalImg');
-  const src = img && img.getAttribute('src');
-  if(!src) return toast('⚠️ Tidak ada gambar untuk diunduh');
+
+function downloadMedia(){
+  let src, ext, label;
+  if(fotoState.type === 'video'){
+    const vid = $('#modalVideo');
+    src = vid && vid.getAttribute('src');
+    ext = 'mp4';
+    label = 'video';
+  } else {
+    const img = $('#modalImg');
+    src = img && img.getAttribute('src');
+    ext = 'jpg';
+    label = 'foto';
+  }
+  if(!src) return toast('⚠️ Tidak ada file untuk diunduh');
   const r = state.records.find(x => x.id === fotoState.id);
-  let name = 'foto';
+  let name = label;
   if(r){
     const d = new Date(r.ts);
     const dp = dateParts(r.ts);
     const clean = String(r.nama).replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,40) || 'barang';
-    name = `foto_${clean}_${dp.tahun}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${dp.jam.replace(':','-')}`;
+    name = `${label}_${clean}_${dp.tahun}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${dp.jam.replace(':','-')}`;
   }
   const a = document.createElement('a');
   a.href = src;
-  a.download = name + '.jpg';
+  a.download = name + '.' + ext;
   document.body.appendChild(a);
   a.click();
   a.remove();
-  toast('⬇️ Foto berhasil diunduh');
+  toast('⬇️ ' + (label === 'video' ? 'Video' : 'Foto') + ' berhasil diunduh');
 }
+
+/* Alias lama agar tetap kompatibel */
+function downloadFoto(){ downloadMedia(); }
 
 (function initFotoZoom(){
   const body = $('#modalFotoBody');
@@ -1171,14 +1256,16 @@ function downloadFoto(){
   let dragging = false, pinching = false;
   let sx = 0, sy = 0, ox = 0, oy = 0, pinchStart = null;
 
+  const isVideo = () => fotoState.type === 'video';
+
   body.addEventListener('wheel', e => {
-    if(!modal.classList.contains('show')) return;
+    if(!modal.classList.contains('show') || isVideo()) return;
     e.preventDefault();
     zoomFoto(e.deltaY < 0 ? 0.15 : -0.15);
   }, { passive:false });
 
   body.addEventListener('pointerdown', e => {
-    if(pinching || fotoState.scale <= 1) return;
+    if(isVideo() || pinching || fotoState.scale <= 1) return;
     dragging = true;
     body.classList.add('dragging');
     try{ body.setPointerCapture(e.pointerId); }catch(_){}
@@ -1186,7 +1273,7 @@ function downloadFoto(){
     ox = fotoState.tx; oy = fotoState.ty;
   });
   body.addEventListener('pointermove', e => {
-    if(!dragging || pinching) return;
+    if(!dragging || pinching || isVideo()) return;
     fotoState.tx = ox + (e.clientX - sx);
     fotoState.ty = oy + (e.clientY - sy);
     applyFotoTransform();
@@ -1197,6 +1284,7 @@ function downloadFoto(){
   body.addEventListener('pointerleave', stopDrag);
 
   body.addEventListener('touchstart', e => {
+    if(isVideo()) return;
     if(e.touches.length === 2){
       pinching = true;
       stopDrag();
@@ -1207,6 +1295,7 @@ function downloadFoto(){
   }, { passive:true });
 
   body.addEventListener('touchmove', e => {
+    if(isVideo()) return;
     if(e.touches.length === 2 && pinchStart){
       e.preventDefault();
       const dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -1376,6 +1465,28 @@ function handleFoto(e){
   reader.readAsDataURL(f);
 }
 
+function handleVideo(e){
+  const f = e.target.files[0];
+  if(!f) return;
+  const MAX_MB = 8;
+  if(f.size > MAX_MB * 1024 * 1024){
+    toast(`⚠️ Video terlalu besar (maks ${MAX_MB} MB). Kompres/short video dulu.`);
+    e.target.value = '';
+    return;
+  }
+  // Peringatan ringan jika besar
+  if(f.size > 4 * 1024 * 1024){
+    toast('ℹ️ Video cukup besar — sinkronisasi Firebase bisa lambat.');
+  }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    state.pendingVideo = ev.target.result;
+    showVideoPreview();
+  };
+  reader.onerror = () => toast('❌ Gagal membaca file video');
+  reader.readAsDataURL(f);
+}
+
 function showFotoPreview(){
   const box = $('#fotoPreview');
   if(!state.pendingFoto){ box.innerHTML = ''; return; }
@@ -1385,10 +1496,25 @@ function showFotoPreview(){
     </div>`;
 }
 
+function showVideoPreview(){
+  const box = $('#videoPreview');
+  if(!state.pendingVideo){ box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="row gap" style="margin-bottom:6px">
+      <video src="${state.pendingVideo}" style="width:150px;height:100px;background:#000;object-fit:cover;border-radius:12px;border:1px solid var(--border)" controls muted></video>
+      <button type="button" class="btn tiny danger" onclick="clearVideo()">✖ Hapus Video</button>
+    </div>`;
+}
+
 function clearFoto(){
   state.pendingFoto = '';
   $('#inFoto').value = '';
   $('#fotoPreview').innerHTML = '';
+}
+
+function clearVideo(){
+  state.pendingVideo = '';
+  $('#inVideo').value = '';
+  $('#videoPreview').innerHTML = '';
 }
 
 function saveRecord(e){
@@ -1405,14 +1531,17 @@ function saveRecord(e){
     const r = state.records.find(x => x.id === state.editingId);
     if(r){
       r.nama = nama; r.qty = qty; r.deskripsi = desc;
-      if(state.pendingFoto) r.foto = state.pendingFoto;
+      if(state.pendingFoto)  r.foto  = state.pendingFoto;
+      if(state.pendingVideo) r.video = state.pendingVideo;
       fbSet('records/' + r.id, r);
       toast('✅ Catatan diperbarui');
     }
   } else {
     const rec = {
       id: uid(), ts: Date.now(), nama, qty, deskripsi: desc,
-      foto: state.pendingFoto || '', author: state.session || '-'
+      foto: state.pendingFoto || '',
+      video: state.pendingVideo || '',
+      author: state.session || '-'
     };
     state.records.unshift(rec);
     fbSet('records/' + rec.id, rec);
@@ -1432,14 +1561,17 @@ function saveRecord(e){
 function resetForm(){
   state.editingId = null;
   state.pendingFoto = '';
+  state.pendingVideo = '';
   $('#formRecord').reset();
   $('#fotoPreview').innerHTML = '';
+  $('#videoPreview').innerHTML = '';
   $('#editHint').textContent = '';
 }
 
 function startEdit(r){
   state.editingId = r.id;
   state.pendingFoto = '';
+  state.pendingVideo = '';
   $('#inNama').value = r.nama;
   $('#inQty').value = r.qty;
   $('#inDesc').value = r.deskripsi || '';
@@ -1447,6 +1579,12 @@ function startEdit(r){
     ? `<div class="row gap" style="margin-bottom:6px">
         <img src="${r.foto}" style="width:90px;height:90px;object-fit:cover;border-radius:12px;border:1px solid var(--border)">
         <span class="muted small">Foto lama akan tetap dipakai jika tidak diganti.</span>
+       </div>`
+    : '';
+  $('#videoPreview').innerHTML = r.video
+    ? `<div class="row gap" style="margin-bottom:6px">
+        <video src="${r.video}" style="width:150px;height:100px;background:#000;object-fit:cover;border-radius:12px;border:1px solid var(--border)" controls muted></video>
+        <span class="muted small">Video lama akan tetap dipakai jika tidak diganti.</span>
        </div>`
     : '';
   $('#editHint').textContent = '✏️ Mode edit — ubah lalu tekan Simpan';
@@ -1485,6 +1623,8 @@ function buildMessage(records, title){
       const d = dateParts(r.ts);
       msg += `${n}. [${d.jam}] *${r.nama}* — Qty: ${r.qty}\n`;
       if(r.deskripsi) msg += `     _${r.deskripsi}_\n`;
+      if(r.foto)  msg += `     📷 Foto: ada\n`;
+      if(r.video) msg += `     🎬 Video: ada\n`;
     });
     msg += '\n';
   });
@@ -1509,6 +1649,8 @@ function sendWaRecord(r){
   msg += `Hari: ${d.hari}\nTanggal: ${d.tanggal} ${d.bulan} ${d.tahun}\nJam: ${d.jam}\n`;
   msg += `Nama Barang: *${r.nama}*\nTotal/Qty: ${r.qty}\n`;
   if(r.deskripsi) msg += `Deskripsi: ${r.deskripsi}\n`;
+  if(r.foto)  msg += `📷 Foto: ada\n`;
+  if(r.video) msg += `🎬 Video: ada\n`;
   msg += `\nDikirim oleh: ${state.session || 'Pengunjung'}\n${new Date().toLocaleString('id-ID')}`;
   window.open(waLink(no, msg), '_blank');
 }
@@ -1533,10 +1675,14 @@ function buildPrintDoc(records, title, groupMode){
     rows += `<tr class="grp"><td colspan="9">${esc(groupLabel(items, groupMode || 'hari'))} &nbsp;•&nbsp; ${items.length} catatan</td></tr>`;
     items.forEach(r => {
       const d = dateParts(r.ts);
+      const tags = [];
+      if(r.foto)  tags.push('📷 Foto');
+      if(r.video) tags.push('🎬 Video');
+      const tagStr = tags.length ? ' ' + tags.join(' ') : '';
       rows += `<tr>
         <td>${++no}</td><td>${d.jam}</td><td>${d.hari}</td><td>${d.tanggal}</td>
         <td>${d.bulan}</td><td>${d.tahun}</td><td>${esc(r.nama)}</td>
-        <td>${esc(r.qty)}</td><td>${esc(r.deskripsi) || '-'}</td>
+        <td>${esc(r.qty)}</td><td>${esc(r.deskripsi) || '-'}${tagStr}</td>
       </tr>`;
     });
   });
@@ -1720,7 +1866,8 @@ function seedDemo(){
     const rec = {
       id: uid(),
       ts: now - (i * 1000 * 60 * 37) - (i >= 3 ? 1000*60*60*26 : 0),
-      nama: b[0], qty: b[1], deskripsi: b[2], foto: '', author: state.session || '-'
+      nama: b[0], qty: b[1], deskripsi: b[2],
+      foto: '', video: '', author: state.session || '-'
     };
     state.records.unshift(rec);
     fbSet('records/' + rec.id, rec);
@@ -1759,6 +1906,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#formRegister').addEventListener('submit', handleRegister);
   $('#formRecord').addEventListener('submit', saveRecord);
   $('#inFoto').addEventListener('change', handleFoto);
+  $('#inVideo').addEventListener('change', handleVideo);
 
   bindSearchInput('pubSearch', renderPublic);
   bindSearchInput('admQuickSearch', renderAdmin);
