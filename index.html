@@ -1537,12 +1537,8 @@ function waData(){
 }
 
 /* ============================================================
-   ⬇️ DOWNLOAD PDF — HITAM PUTIH, header tercetak di SETIAP halaman
-   - Header (judul + sub-judul + statistik + garis) muncul di tiap halaman
-   - Tabel 100% hitam-putih (text hitam, garis hitam, latar putih)
-   - Foto tetap jernih berwarna
-   - `showHead: 'everyPage'` → header tabel berulang di tiap halaman
-   - `rowPageBreak: 'avoid'`  → baris tidak terbelah antar halaman
+   ⬇️ DOWNLOAD PDF — HITAM PUTIH, header tiap halaman,
+   nomor urut RESET ke 1 setiap grup/tanggal selesai
    ============================================================ */
 function downloadPdf(records, title, groupMode){
   if(!records || !records.length) return toast('📭 Tidak ada data untuk diunduh');
@@ -1569,13 +1565,13 @@ function downloadPdf(records, title, groupMode){
   records.forEach(r => { totalQty += num(r.qty); });
   const totalHari = new Set(records.map(r => fmtDateKey(r.ts))).size;
 
-  // ---- Susun body (nomor urut berlanjut) ----
-  let globalNo = 0;
+  // ---- Susun body — NOMOR RESET KE 1 TIAP GRUP ----
   groups.forEach(items => {
+    let no = 0;   // ← mulai dari 0, jadi baris pertama setiap grup = 1
     items.forEach(r => {
       const d = dateParts(r.ts);
       const rowArr = [
-        ++globalNo,
+        ++no,     // ← nomor direset per grup
         d.jam,
         d.hari,
         d.tanggal,
@@ -1612,15 +1608,14 @@ function downloadPdf(records, title, groupMode){
   if(hasFoto) columnStyles[9] = { cellWidth: 30, halign:'center' };
 
   // ---- Render tabel ----
-  // margin.top = 28 → menyisakan ruang untuk header yg digambar di willDrawPage
   doc.autoTable({
     head,
     body,
     startY: 28,
     margin: { top: 28, left: 10, right: 10, bottom: 14 },
     theme: 'grid',
-    showHead: 'everyPage',     // header tabel berulang di setiap halaman
-    rowPageBreak: 'avoid',     // baris tidak terbelah antar halaman
+    showHead: 'everyPage',
+    rowPageBreak: 'avoid',
     pageBreak: 'auto',
     styles: {
       font: 'helvetica',
@@ -1649,7 +1644,6 @@ function downloadPdf(records, title, groupMode){
       fillColor: [255, 255, 255]
     },
     columnStyles,
-    // Gambar foto di dalam sel (jalan di semua halaman)
     didDrawCell: (data) => {
       if(!hasFoto) return;
       if(data.section !== 'body') return;
@@ -1673,7 +1667,6 @@ function downloadPdf(records, title, groupMode){
         console.warn('Gagal menambahkan foto ke PDF:', err);
       }
     },
-    // Header dokumen digambar SEBELUM isi halaman → muncul di setiap halaman
     willDrawPage: () => {
       // Judul
       doc.setFont('helvetica', 'bold');
