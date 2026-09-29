@@ -99,13 +99,6 @@ textarea.inp{resize:vertical}
   border:1px solid var(--border);transition:.15s;
 }
 .thumb:hover{transform:scale(1.12)}
-.video-thumb{
-  width:52px;height:52px;display:grid;place-items:center;cursor:pointer;
-  border-radius:8px;border:1px solid var(--border);
-  background:linear-gradient(135deg,#1a233a,#0f1626);
-  font-size:1.4rem;transition:.15s;
-}
-.video-thumb:hover{transform:scale(1.12);filter:brightness(1.15)}
 .acts{white-space:nowrap}
 .empty{padding:34px;text-align:center;color:var(--muted)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
@@ -242,7 +235,7 @@ mark{
   font-weight:700;
 }
 
-/* ===== PENAMPIL MEDIA: FOTO (ZOOM/PAN) & VIDEO ===== */
+/* ===== PENAMPIL FOTO (ZOOM/PAN) ===== */
 .modal{ display:none; position:fixed; inset:0; z-index:150; background:rgba(0,0,0,.92); padding:14px; }
 .modal.show{ display:grid; place-items:center; }
 .modal-foto-wrap{
@@ -276,11 +269,6 @@ mark{
   transform-origin:center center;
   transition:transform .1s ease-out;
   will-change:transform;
-}
-.modal-foto-body video{
-  max-width:100%; max-height:100%;
-  border-radius:10px; background:#000;
-  outline:none; cursor:default;
 }
 @media(max-width:560px){
   .modal-foto-toolbar .btn{ padding:7px 10px; font-size:.82em; }
@@ -419,10 +407,6 @@ mark{
             <input id="inFoto" type="file" accept="image/*" class="inp">
           </label>
           <div class="full" id="fotoPreview"></div>
-          <label class="full">Upload Video (opsional, maks 8 MB)
-            <input id="inVideo" type="file" accept="video/*" class="inp">
-          </label>
-          <div class="full" id="videoPreview"></div>
           <div class="full row gap">
             <button class="btn primary" type="submit">💾 Simpan</button>
             <button class="btn ghost" type="button" onclick="resetForm()">↺ Reset Form</button>
@@ -563,7 +547,7 @@ mark{
 <button class="fab" title="Kirim ringkasan ke WhatsApp Admin" onclick="waPublic()">💬</button>
 <div id="toast"></div>
 
-<!-- ===== MODAL MEDIA (FOTO: ZOOM/PAN & VIDEO: PLAYER) ===== -->
+<!-- ===== MODAL FOTO (ZOOM/PAN) ===== -->
 <div id="modalFoto" class="modal">
   <div class="modal-foto-wrap">
     <div class="modal-foto-toolbar">
@@ -578,12 +562,11 @@ mark{
     </div>
     <div class="modal-foto-body" id="modalFotoBody">
       <img id="modalImg" src="" alt="Foto catatan">
-      <video id="modalVideo" src="" controls playsinline preload="metadata" style="display:none;"></video>
     </div>
   </div>
 </div>
 
-<!-- ============ FIREBASE SDK (compat — cocok untuk HTML vanilla) ============ -->
+<!-- ============ FIREBASE SDK (compat) ============ -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
@@ -609,7 +592,7 @@ function toast(msg){
 function loadLS(k, def){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; }catch(e){ return def; } }
 function saveLS(k, v){
   try{ localStorage.setItem(k, JSON.stringify(v)); return true; }
-  catch(e){ toast('⚠️ Penyimpanan penuh — kurangi ukuran foto/video.'); return false; }
+  catch(e){ toast('⚠️ Penyimpanan penuh — kurangi ukuran foto.'); return false; }
 }
 
 function fmtDateKey(ts){ const d = new Date(ts); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
@@ -930,8 +913,7 @@ const state = {
   settings: Object.assign({}, DEFAULT_SETTINGS, loadLS(KEY.settings, {})),
   session: sessionStorage.getItem(KEY.session) || null,
   editingId: null,
-  pendingFoto: '',
-  pendingVideo: ''
+  pendingFoto: ''
 };
 state.settings.custom = Object.assign({}, DEFAULT_SETTINGS.custom, state.settings.custom || {});
 
@@ -1053,7 +1035,7 @@ function buildTables(container, records, opts = {}){
           <thead><tr>
             <th>No</th><th>Jam</th><th>Hari</th><th>Tanggal</th><th>Bulan</th><th>Tahun</th>
             <th>Nama Barang</th><th>Total/Qty</th><th>Deskripsi</th>
-            ${opts.foto ? '<th>Foto</th><th>Video</th>' : ''}
+            ${opts.foto ? '<th>Foto</th>' : ''}
             ${opts.actions ? '<th>Aksi</th>' : ''}
           </tr></thead>
           <tbody></tbody>
@@ -1078,9 +1060,6 @@ function buildTables(container, records, opts = {}){
         html += `<td>${ r.foto
           ? `<img class="thumb" src="${r.foto}" data-foto="${r.id}" alt="foto">`
           : '<span class="muted">-</span>' }</td>`;
-        html += `<td>${ r.video
-          ? `<div class="video-thumb" data-video="${r.id}" title="Putar video">🎬</div>`
-          : '<span class="muted">-</span>' }</td>`;
       }
       if(opts.actions){
         html += `<td class="acts">
@@ -1097,9 +1076,6 @@ function buildTables(container, records, opts = {}){
 
   container.querySelectorAll('[data-foto]').forEach(img => {
     img.onclick = () => openFoto(img.dataset.foto);
-  });
-  container.querySelectorAll('[data-video]').forEach(el => {
-    el.onclick = () => openVideo(el.dataset.video);
   });
   container.querySelectorAll('[data-act]').forEach(btn => {
     btn.onclick = () => {
@@ -1132,8 +1108,8 @@ function waGroup(cacheKey){
   sendWa(g.items, 'Laporan Tabel: ' + label);
 }
 
-/* ================= PENAMPIL FOTO & VIDEO ================= */
-const fotoState = { scale: 1, tx: 0, ty: 0, id: null, type: null };
+/* ================= PENAMPIL FOTO ================= */
+const fotoState = { scale: 1, tx: 0, ty: 0, id: null };
 
 function applyFotoTransform(){
   const img = $('#modalImg');
@@ -1145,7 +1121,6 @@ function applyFotoTransform(){
   if(body) body.style.cursor = fotoState.scale > 1 ? 'grab' : 'default';
 }
 function zoomFoto(delta){
-  if(fotoState.type !== 'foto') return;
   fotoState.scale = Math.min(6, Math.max(0.2, +(fotoState.scale + delta).toFixed(2)));
   if(fotoState.scale <= 1){ fotoState.tx = 0; fotoState.ty = 0; }
   applyFotoTransform();
@@ -1155,99 +1130,47 @@ function resetZoom(){
   applyFotoTransform();
 }
 
-function showZoomControls(show){
-  const el = $('#zoomControls');
-  if(el) el.style.display = show ? 'contents' : 'none';
-}
-
 function openFoto(id){
   const r = state.records.find(x => x.id === id);
   if(!r || !r.foto) return;
   fotoState.id = id;
-  fotoState.type = 'foto';
   fotoState.scale = 1; fotoState.tx = 0; fotoState.ty = 0;
 
   const img = $('#modalImg');
-  const vid = $('#modalVideo');
-  // reset video
-  try{ vid.pause(); }catch(_){}
-  vid.removeAttribute('src');
-  vid.style.display = 'none';
-  // show img
-  img.style.display = 'block';
   img.src = r.foto;
 
-  showZoomControls(true);
   $('#modalFoto').classList.add('show');
   applyFotoTransform();
-}
-
-function openVideo(id){
-  const r = state.records.find(x => x.id === id);
-  if(!r || !r.video) return;
-  fotoState.id = id;
-  fotoState.type = 'video';
-  fotoState.scale = 1; fotoState.tx = 0; fotoState.ty = 0;
-
-  const img = $('#modalImg');
-  const vid = $('#modalVideo');
-  // reset img
-  img.style.transform = '';
-  img.removeAttribute('src');
-  img.style.display = 'none';
-  // show video
-  vid.style.display = 'block';
-  vid.src = r.video;
-
-  showZoomControls(false);
-  $('#modalFoto').classList.add('show');
 }
 
 function closeModalFoto(){
   $('#modalFoto').classList.remove('show');
   const img = $('#modalImg');
-  const vid = $('#modalVideo');
   img.removeAttribute('src');
-  try{ vid.pause(); }catch(_){}
-  vid.removeAttribute('src');
   fotoState.id = null;
-  fotoState.type = null;
   resetZoom();
 }
 
 function downloadMedia(){
-  let src, ext, label;
-  if(fotoState.type === 'video'){
-    const vid = $('#modalVideo');
-    src = vid && vid.getAttribute('src');
-    ext = 'mp4';
-    label = 'video';
-  } else {
-    const img = $('#modalImg');
-    src = img && img.getAttribute('src');
-    ext = 'jpg';
-    label = 'foto';
-  }
+  const img = $('#modalImg');
+  const src = img && img.getAttribute('src');
   if(!src) return toast('⚠️ Tidak ada file untuk diunduh');
   const r = state.records.find(x => x.id === fotoState.id);
-  let name = label;
+  let name = 'foto';
   if(r){
     const d = new Date(r.ts);
     const dp = dateParts(r.ts);
     const clean = String(r.nama).replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,40) || 'barang';
-    name = `${label}_${clean}_${dp.tahun}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${dp.jam.replace(':','-')}`;
+    name = `foto_${clean}_${dp.tahun}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${dp.jam.replace(':','-')}`;
   }
   const a = document.createElement('a');
   a.href = src;
-  a.download = name + '.' + ext;
+  a.download = name + '.jpg';
   document.body.appendChild(a);
   a.click();
   a.remove();
-  toast('⬇️ ' + (label === 'video' ? 'Video' : 'Foto') + ' berhasil diunduh');
+  toast('⬇️ Foto berhasil diunduh');
 }
-
-/* Alias lama agar tetap kompatibel */
-function downloadFoto(){ downloadMedia(); }
 
 (function initFotoZoom(){
   const body = $('#modalFotoBody');
@@ -1256,16 +1179,14 @@ function downloadFoto(){ downloadMedia(); }
   let dragging = false, pinching = false;
   let sx = 0, sy = 0, ox = 0, oy = 0, pinchStart = null;
 
-  const isVideo = () => fotoState.type === 'video';
-
   body.addEventListener('wheel', e => {
-    if(!modal.classList.contains('show') || isVideo()) return;
+    if(!modal.classList.contains('show')) return;
     e.preventDefault();
     zoomFoto(e.deltaY < 0 ? 0.15 : -0.15);
   }, { passive:false });
 
   body.addEventListener('pointerdown', e => {
-    if(isVideo() || pinching || fotoState.scale <= 1) return;
+    if(pinching || fotoState.scale <= 1) return;
     dragging = true;
     body.classList.add('dragging');
     try{ body.setPointerCapture(e.pointerId); }catch(_){}
@@ -1273,7 +1194,7 @@ function downloadFoto(){ downloadMedia(); }
     ox = fotoState.tx; oy = fotoState.ty;
   });
   body.addEventListener('pointermove', e => {
-    if(!dragging || pinching || isVideo()) return;
+    if(!dragging || pinching) return;
     fotoState.tx = ox + (e.clientX - sx);
     fotoState.ty = oy + (e.clientY - sy);
     applyFotoTransform();
@@ -1284,7 +1205,6 @@ function downloadFoto(){ downloadMedia(); }
   body.addEventListener('pointerleave', stopDrag);
 
   body.addEventListener('touchstart', e => {
-    if(isVideo()) return;
     if(e.touches.length === 2){
       pinching = true;
       stopDrag();
@@ -1295,7 +1215,6 @@ function downloadFoto(){ downloadMedia(); }
   }, { passive:true });
 
   body.addEventListener('touchmove', e => {
-    if(isVideo()) return;
     if(e.touches.length === 2 && pinchStart){
       e.preventDefault();
       const dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -1443,7 +1362,7 @@ function handleLogin(e){
   enterAdmin();
 }
 
-/* ================= CRUD CATATAN ================= */
+/* ================= FOTO UPLOAD ================= */
 function handleFoto(e){
   const f = e.target.files[0];
   if(!f) return;
@@ -1451,39 +1370,22 @@ function handleFoto(e){
   reader.onload = ev => {
     const img = new Image();
     img.onload = () => {
-      const max = 720;
+      // Resolusi lebih tinggi agar tetap jernih saat PDF
+      const max = 1280;
       let w = img.width, h = img.height;
       if(w > max){ h = Math.round(h * max / w); w = max; }
       const cv = document.createElement('canvas');
       cv.width = w; cv.height = h;
-      cv.getContext('2d').drawImage(img, 0, 0, w, h);
-      state.pendingFoto = cv.toDataURL('image/jpeg', 0.72);
+      const ctx = cv.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, w, h);
+      // Kualitas 0.85 → jernih, ukuran masih wajar
+      state.pendingFoto = cv.toDataURL('image/jpeg', 0.85);
       showFotoPreview();
     };
     img.src = ev.target.result;
   };
-  reader.readAsDataURL(f);
-}
-
-function handleVideo(e){
-  const f = e.target.files[0];
-  if(!f) return;
-  const MAX_MB = 8;
-  if(f.size > MAX_MB * 1024 * 1024){
-    toast(`⚠️ Video terlalu besar (maks ${MAX_MB} MB). Kompres/short video dulu.`);
-    e.target.value = '';
-    return;
-  }
-  // Peringatan ringan jika besar
-  if(f.size > 4 * 1024 * 1024){
-    toast('ℹ️ Video cukup besar — sinkronisasi Firebase bisa lambat.');
-  }
-  const reader = new FileReader();
-  reader.onload = ev => {
-    state.pendingVideo = ev.target.result;
-    showVideoPreview();
-  };
-  reader.onerror = () => toast('❌ Gagal membaca file video');
   reader.readAsDataURL(f);
 }
 
@@ -1496,25 +1398,10 @@ function showFotoPreview(){
     </div>`;
 }
 
-function showVideoPreview(){
-  const box = $('#videoPreview');
-  if(!state.pendingVideo){ box.innerHTML = ''; return; }
-  box.innerHTML = `<div class="row gap" style="margin-bottom:6px">
-      <video src="${state.pendingVideo}" style="width:150px;height:100px;background:#000;object-fit:cover;border-radius:12px;border:1px solid var(--border)" controls muted></video>
-      <button type="button" class="btn tiny danger" onclick="clearVideo()">✖ Hapus Video</button>
-    </div>`;
-}
-
 function clearFoto(){
   state.pendingFoto = '';
   $('#inFoto').value = '';
   $('#fotoPreview').innerHTML = '';
-}
-
-function clearVideo(){
-  state.pendingVideo = '';
-  $('#inVideo').value = '';
-  $('#videoPreview').innerHTML = '';
 }
 
 function saveRecord(e){
@@ -1531,8 +1418,7 @@ function saveRecord(e){
     const r = state.records.find(x => x.id === state.editingId);
     if(r){
       r.nama = nama; r.qty = qty; r.deskripsi = desc;
-      if(state.pendingFoto)  r.foto  = state.pendingFoto;
-      if(state.pendingVideo) r.video = state.pendingVideo;
+      if(state.pendingFoto) r.foto = state.pendingFoto;
       fbSet('records/' + r.id, r);
       toast('✅ Catatan diperbarui');
     }
@@ -1540,7 +1426,6 @@ function saveRecord(e){
     const rec = {
       id: uid(), ts: Date.now(), nama, qty, deskripsi: desc,
       foto: state.pendingFoto || '',
-      video: state.pendingVideo || '',
       author: state.session || '-'
     };
     state.records.unshift(rec);
@@ -1561,17 +1446,14 @@ function saveRecord(e){
 function resetForm(){
   state.editingId = null;
   state.pendingFoto = '';
-  state.pendingVideo = '';
   $('#formRecord').reset();
   $('#fotoPreview').innerHTML = '';
-  $('#videoPreview').innerHTML = '';
   $('#editHint').textContent = '';
 }
 
 function startEdit(r){
   state.editingId = r.id;
   state.pendingFoto = '';
-  state.pendingVideo = '';
   $('#inNama').value = r.nama;
   $('#inQty').value = r.qty;
   $('#inDesc').value = r.deskripsi || '';
@@ -1579,12 +1461,6 @@ function startEdit(r){
     ? `<div class="row gap" style="margin-bottom:6px">
         <img src="${r.foto}" style="width:90px;height:90px;object-fit:cover;border-radius:12px;border:1px solid var(--border)">
         <span class="muted small">Foto lama akan tetap dipakai jika tidak diganti.</span>
-       </div>`
-    : '';
-  $('#videoPreview').innerHTML = r.video
-    ? `<div class="row gap" style="margin-bottom:6px">
-        <video src="${r.video}" style="width:150px;height:100px;background:#000;object-fit:cover;border-radius:12px;border:1px solid var(--border)" controls muted></video>
-        <span class="muted small">Video lama akan tetap dipakai jika tidak diganti.</span>
        </div>`
     : '';
   $('#editHint').textContent = '✏️ Mode edit — ubah lalu tekan Simpan';
@@ -1624,7 +1500,6 @@ function buildMessage(records, title){
       msg += `${n}. [${d.jam}] *${r.nama}* — Qty: ${r.qty}\n`;
       if(r.deskripsi) msg += `     _${r.deskripsi}_\n`;
       if(r.foto)  msg += `     📷 Foto: ada\n`;
-      if(r.video) msg += `     🎬 Video: ada\n`;
     });
     msg += '\n';
   });
@@ -1650,7 +1525,6 @@ function sendWaRecord(r){
   msg += `Nama Barang: *${r.nama}*\nTotal/Qty: ${r.qty}\n`;
   if(r.deskripsi) msg += `Deskripsi: ${r.deskripsi}\n`;
   if(r.foto)  msg += `📷 Foto: ada\n`;
-  if(r.video) msg += `🎬 Video: ada\n`;
   msg += `\nDikirim oleh: ${state.session || 'Pengunjung'}\n${new Date().toLocaleString('id-ID')}`;
   window.open(waLink(no, msg), '_blank');
 }
@@ -1665,24 +1539,33 @@ function waData(){
   sendWa(list, q ? `Laporan Data Catatan (filter: "${q}")` : 'Laporan Data Catatan');
 }
 
-/* ================= EXPORT PDF ================= */
+/* ================= EXPORT PDF (dengan FOTO JERNIH) ================= */
 function buildPrintDoc(records, title, groupMode){
   const groups = groupRecords(records, groupMode || 'hari');
+  const hasFoto = records.some(r => r.foto);
+  const totalCols = hasFoto ? 10 : 9;
   let rows = '';
 
   groups.forEach(items => {
     let no = 0;
-    rows += `<tr class="grp"><td colspan="9">${esc(groupLabel(items, groupMode || 'hari'))} &nbsp;•&nbsp; ${items.length} catatan</td></tr>`;
+    rows += `<tr class="grp"><td colspan="${totalCols}">${esc(groupLabel(items, groupMode || 'hari'))} &nbsp;•&nbsp; ${items.length} catatan</td></tr>`;
     items.forEach(r => {
       const d = dateParts(r.ts);
-      const tags = [];
-      if(r.foto)  tags.push('📷 Foto');
-      if(r.video) tags.push('🎬 Video');
-      const tagStr = tags.length ? ' ' + tags.join(' ') : '';
+      // Foto besar dan jernih — pakai gambar asli (data URL), ditampilkan 90px
+      const fotoCell = r.foto
+        ? `<img class="foto-pdf" src="${r.foto}" alt="foto">`
+        : '<span class="nofoto">-</span>';
       rows += `<tr>
-        <td>${++no}</td><td>${d.jam}</td><td>${d.hari}</td><td>${d.tanggal}</td>
-        <td>${d.bulan}</td><td>${d.tahun}</td><td>${esc(r.nama)}</td>
-        <td>${esc(r.qty)}</td><td>${esc(r.deskripsi) || '-'}${tagStr}</td>
+        <td class="c-no">${++no}</td>
+        <td class="c-jam">${d.jam}</td>
+        <td class="c-hari">${d.hari}</td>
+        <td class="c-tgl">${d.tanggal}</td>
+        <td class="c-bln">${d.bulan}</td>
+        <td class="c-thn">${d.tahun}</td>
+        <td class="c-nama">${esc(r.nama)}</td>
+        <td class="c-qty">${esc(r.qty)}</td>
+        <td class="c-desc">${esc(r.deskripsi) || '-'}</td>
+        ${hasFoto ? `<td class="c-foto">${fotoCell}</td>` : ''}
       </tr>`;
     });
   });
@@ -1694,15 +1577,46 @@ function buildPrintDoc(records, title, groupMode){
   <title>${esc(title)}</title>
   <style>
     *{box-sizing:border-box}
-    body{font-family:Arial,Helvetica,sans-serif;padding:22px;color:#111}
+    body{font-family:Arial,Helvetica,sans-serif;padding:20px;color:#111;background:#fff}
     h1{font-size:19px;margin:0 0 4px}
     .sub{color:#666;font-size:11px;margin-bottom:14px}
-    table{width:100%;border-collapse:collapse;font-size:11px}
-    th,td{border:1px solid #999;padding:5px 6px;text-align:left;vertical-align:top}
-    th{background:#e8eefc}
-    tr.grp td{background:#f2f2f2;font-weight:bold;font-size:11.5px}
+    table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
+    th,td{border:1px solid #999;padding:5px 6px;text-align:left;vertical-align:top;word-wrap:break-word;overflow-wrap:anywhere}
+    th{background:#e8eefc;font-weight:bold;text-align:center}
+    tr.grp td{background:#f2f2f2;font-weight:bold;font-size:11.5px;color:#222}
+    /* Kolom ukuran */
+    .c-no{width:32px;text-align:center}
+    .c-jam{width:48px}
+    .c-hari{width:60px}
+    .c-tgl{width:44px;text-align:center}
+    .c-bln{width:66px}
+    .c-thn{width:42px;text-align:center}
+    .c-nama{width:auto}
+    .c-qty{width:70px}
+    .c-desc{width:auto}
+    .c-foto{width:110px;text-align:center;vertical-align:middle}
+    .foto-pdf{
+      width:96px; height:96px; object-fit:cover;
+      border-radius:5px; border:1px solid #888;
+      display:block; margin:0 auto;
+      image-rendering:auto;
+      -webkit-print-color-adjust:exact;
+      print-color-adjust:exact;
+    }
+    .nofoto{color:#bbb;font-size:14px}
     .foot{margin-top:16px;font-size:10px;color:#777;text-align:right}
-    @page{size:A4 landscape;margin:12mm}
+    @page{size:A4 landscape;margin:10mm}
+    @media print{
+      body{padding:0}
+      tr{page-break-inside:avoid;page-break-after:auto}
+      thead{display:table-header-group}
+      .foto-pdf{
+        width:100px !important;
+        height:100px !important;
+        -webkit-print-color-adjust:exact !important;
+        print-color-adjust:exact !important;
+      }
+    }
   </style></head><body>
     <h1>${esc(state.settings.appName)}</h1>
     <div class="sub">${esc(title)} &nbsp;•&nbsp; Dicetak: ${new Date().toLocaleString('id-ID')} &nbsp;•&nbsp; Total ${records.length} catatan</div>
@@ -1710,11 +1624,29 @@ function buildPrintDoc(records, title, groupMode){
       <thead><tr>
         <th>No</th><th>Jam</th><th>Hari</th><th>Tanggal</th><th>Bulan</th><th>Tahun</th>
         <th>Nama Barang</th><th>Total/Qty</th><th>Deskripsi</th>
+        ${hasFoto ? '<th>Foto</th>' : ''}
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
     <div class="foot">© ${new Date().getFullYear()} ${esc(state.settings.appName)} — Dicetak otomatis</div>
-    <script>setTimeout(function(){window.print();},500);<\/script>
+    <script>
+      window.addEventListener('load', function(){
+        // Tunggu semua gambar (data URL) selesai dimuat, baru print
+        var imgs = Array.from(document.images);
+        var loaded = 0, total = imgs.length;
+        if(!total){ setTimeout(function(){window.print();}, 400); return; }
+        imgs.forEach(function(im){
+          if(im.complete){ if(++loaded === total) setTimeout(function(){window.print();}, 300); }
+          else{
+            im.onload = im.onerror = function(){
+              if(++loaded === total) setTimeout(function(){window.print();}, 300);
+            };
+          }
+        });
+        // Fallback agar tetap print jika ada yang lambat
+        setTimeout(function(){ try{window.print();}catch(e){} }, 2500);
+      });
+    <\/script>
   </body></html>`);
   win.document.close();
 }
@@ -1867,7 +1799,7 @@ function seedDemo(){
       id: uid(),
       ts: now - (i * 1000 * 60 * 37) - (i >= 3 ? 1000*60*60*26 : 0),
       nama: b[0], qty: b[1], deskripsi: b[2],
-      foto: '', video: '', author: state.session || '-'
+      foto: '', author: state.session || '-'
     };
     state.records.unshift(rec);
     fbSet('records/' + rec.id, rec);
@@ -1906,7 +1838,6 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#formRegister').addEventListener('submit', handleRegister);
   $('#formRecord').addEventListener('submit', saveRecord);
   $('#inFoto').addEventListener('change', handleFoto);
-  $('#inVideo').addEventListener('change', handleVideo);
 
   bindSearchInput('pubSearch', renderPublic);
   bindSearchInput('admQuickSearch', renderAdmin);
@@ -1959,4 +1890,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 </body>
-</html>
+  </html>
