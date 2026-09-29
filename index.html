@@ -633,15 +633,11 @@ function luminance(hex){
 
 /* ============================================================
    🧹 pdfSafe — Bersihkan karakter yang tidak didukung jsPDF
-   (Ini yang menghilangkan karakter sampah "Ø=ÜÅ" akibat emoji)
    ============================================================ */
 function pdfSafe(s){
   return String(s == null ? '' : s)
-    // Buang pasangan surrogate (mayoritas emoji: 📅 📋 🕒 dll)
     .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '')
-    // Buang symbol/dingbat/arrow/variation selector/ZWJ
     .replace(/[\u2190-\u21FF\u2300-\u23FF\u2600-\u27BF\u2B00-\u2BFF\uFE00-\uFE0F\u200D]/g, '')
-    // Rapikan spasi
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -1541,9 +1537,10 @@ function waData(){
 }
 
 /* ============================================================
-   ⬇️ DOWNLOAD PDF — Desain Rapih + Foto Jernih
-   - Semua teks sudah di-pdfSafe() → tidak ada karakter sampah
-   - Multi-halaman otomatis, header berulang, footer 2 sisi
+   ⬇️ DOWNLOAD PDF — Versi HITAM PUTIH, tanpa judul grup
+   - Header grup ("Selasa, 29 Sept 2026") DIHAPUS
+   - Semua warna hitam-putih (text hitam, garis hitam, tanpa biru/zebra)
+   - Foto tetap tampil jernih
    ============================================================ */
 function downloadPdf(records, title, groupMode){
   if(!records || !records.length) return toast('📭 Tidak ada data untuk diunduh');
@@ -1571,29 +1568,14 @@ function downloadPdf(records, title, groupMode){
   records.forEach(r => { totalQty += num(r.qty); });
   const totalHari = new Set(records.map(r => fmtDateKey(r.ts))).size;
 
-  // ---- Susun body ----
+  // ---- Susun body (TANPA baris judul grup) ----
+  // Nomor urut berlanjut dari 1 sampai akhir
+  let globalNo = 0;
   groups.forEach(items => {
-    // Baris judul grup
-    body.push([{
-      content: pdfSafe(groupLabel(items, groupMode || 'hari')),
-      colSpan: totalCols,
-      styles: {
-        fillColor:[224, 235, 255],
-        textColor:[30, 58, 138],
-        fontStyle:'bold',
-        halign:'left',
-        fontSize: 9.5,
-        cellPadding: { top: 2.2, bottom: 2.2, left: 3, right: 3 }
-      },
-      __isGroup: true
-    }]);
-
-    let no = 0;
-    let altToggle = 0;
     items.forEach(r => {
       const d = dateParts(r.ts);
       const rowArr = [
-        ++no,
+        ++globalNo,
         d.jam,
         d.hari,
         d.tanggal,
@@ -1605,7 +1587,6 @@ function downloadPdf(records, title, groupMode){
       ];
       if(hasFoto) rowArr.push('');
       rowArr.__rec = r;
-      rowArr.__alt = (altToggle++ % 2 === 1);
       body.push(rowArr);
     });
   });
@@ -1613,24 +1594,24 @@ function downloadPdf(records, title, groupMode){
   const head = [['No','Jam','Hari','Tanggal','Bulan','Tahun','Nama Barang','Total / Qty','Deskripsi']];
   if(hasFoto) head[0].push('Foto');
 
-  // ---- Header dokumen ----
+  // ---- Header dokumen (hitam-putih) ----
   const pageW = doc.internal.pageSize.getWidth();
 
   // Judul
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
-  doc.setTextColor(24, 43, 79);
+  doc.setFontSize(15);
+  doc.setTextColor(0, 0, 0);
   doc.text(pdfSafe(state.settings.appName) || 'Catatan', 10, 12);
 
   // Sub-judul
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.setTextColor(100, 110, 130);
+  doc.setTextColor(0, 0, 0);
   doc.text(pdfSafe(title) + '   |   Dicetak: ' + new Date().toLocaleString('id-ID'), 10, 17.8);
 
   // Statistik
   doc.setFontSize(8.5);
-  doc.setTextColor(60, 70, 90);
+  doc.setTextColor(0, 0, 0);
   doc.text(
     'Total Catatan: ' + records.length +
     '   |   Total Qty: ' + totalQty +
@@ -1639,25 +1620,25 @@ function downloadPdf(records, title, groupMode){
   );
 
   // Garis pemisah
-  doc.setDrawColor(200, 210, 225);
-  doc.setLineWidth(0.3);
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.4);
   doc.line(10, 25, pageW - 10, 25);
 
   // ---- Lebar kolom ----
   const columnStyles = {
-    0: { cellWidth: 11, halign:'center', fontStyle:'bold' },
+    0: { cellWidth: 12, halign:'center', fontStyle:'bold' },
     1: { cellWidth: 16, halign:'center' },
     2: { cellWidth: 22 },
     3: { cellWidth: 16, halign:'center' },
     4: { cellWidth: 24 },
     5: { cellWidth: 14, halign:'center' },
-    6: { cellWidth: 'auto' },                 // Nama (fleksibel)
+    6: { cellWidth: 'auto' },                 // Nama
     7: { cellWidth: 26, halign:'center' },    // Qty
-    8: { cellWidth: 'auto' }                  // Deskripsi (fleksibel)
+    8: { cellWidth: 'auto' }                  // Deskripsi
   };
   if(hasFoto) columnStyles[9] = { cellWidth: 30, halign:'center' };
 
-  // ---- Render tabel ----
+  // ---- Render tabel (HITAM PUTIH MURNI) ----
   doc.autoTable({
     head,
     body,
@@ -1670,32 +1651,27 @@ function downloadPdf(records, title, groupMode){
       cellPadding: 1.8,
       overflow: 'linebreak',
       valign: 'middle',
-      lineColor: [200, 210, 225],
+      lineColor: [0, 0, 0],        // garis hitam
       lineWidth: 0.15,
-      textColor: [24, 32, 48]
+      textColor: [0, 0, 0],        // teks hitam
+      fillColor: [255, 255, 255]   // latar putih
     },
     headStyles: {
-      fillColor: [59, 157, 255],
-      textColor: [255, 255, 255],
+      fillColor: [255, 255, 255],
+      textColor: [0, 0, 0],
       fontStyle: 'bold',
       halign: 'center',
       valign: 'middle',
-      fontSize: 8.8,
-      cellPadding: { top: 2.4, bottom: 2.4, left: 1.5, right: 1.5 }
+      fontSize: 9,
+      lineColor: [0, 0, 0],
+      lineWidth: 0.4,              // border header lebih tebal
+      cellPadding: { top: 2.6, bottom: 2.6, left: 1.5, right: 1.5 }
     },
     bodyStyles: {
-      minCellHeight: hasFoto ? 24 : 6.5
+      minCellHeight: hasFoto ? 24 : 6.5,
+      fillColor: [255, 255, 255]
     },
     columnStyles,
-    // Warnai baris selang-seling (zebra) — kecuali baris judul grup
-    didParseCell: (data) => {
-      if(data.section !== 'body') return;
-      const raw = data.row && data.row.raw;
-      if(!raw || raw.__isGroup) return;
-      if(raw.__alt){
-        data.cell.styles.fillColor = [247, 249, 253];
-      }
-    },
     // Gambar foto di dalam sel terakhir
     didDrawCell: (data) => {
       if(!hasFoto) return;
@@ -1716,7 +1692,7 @@ function downloadPdf(records, title, groupMode){
         // Background putih di belakang foto
         doc.setFillColor(255, 255, 255);
         doc.rect(x, y, size, size, 'F');
-        // Render foto kualitas MEDIUM (lebih cepat & tetap jernih)
+        // Render foto (tetap berwarna — hanya tabel yang hitam-putih)
         doc.addImage(rec.foto, 'JPEG', x, y, size, size, undefined, 'MEDIUM');
       }catch(err){
         console.warn('Gagal menambahkan foto ke PDF:', err);
@@ -1724,15 +1700,15 @@ function downloadPdf(records, title, groupMode){
     }
   });
 
-  // ---- Footer di setiap halaman ----
+  // ---- Footer di setiap halaman (hitam-putih) ----
   const totalPages = doc.internal.getNumberOfPages();
   const pageH = doc.internal.pageSize.getHeight();
   for(let i = 1; i <= totalPages; i++){
     doc.setPage(i);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.setTextColor(140, 150, 165);
-    // Kiri: nama aplikasi + tahun
+    doc.setTextColor(0, 0, 0);
+    // Kiri: tahun + nama aplikasi
     doc.text(
       `${new Date().getFullYear()} - ${pdfSafe(state.settings.appName) || 'Catatan'}`,
       10, pageH - 5
